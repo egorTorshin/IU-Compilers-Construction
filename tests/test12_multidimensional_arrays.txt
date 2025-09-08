@@ -1,0 +1,5 @@
+// Test 12: Multidimensional arrays
+type Matrix is array[2] array[2] real
+var m : Matrix
+m[0][0] := 1.0
+print m[0][0]

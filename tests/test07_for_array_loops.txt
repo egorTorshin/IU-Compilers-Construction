@@ -1,0 +1,7 @@
+// Test 7: For array loops
+type Numbers is array[2] integer
+var nums : Numbers
+nums[0] := 100
+for value in nums loop
+    print value
+end

@@ -1,0 +1,10 @@
+// Test 10: Nested structures
+type Person is record
+    var age : integer
+end
+type Team is record
+    var member : Person
+end
+var team : Team
+team.member.age := 25
+print team.member.age

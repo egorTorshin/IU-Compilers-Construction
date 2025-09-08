@@ -1,0 +1,5 @@
+// Test 2: Type conversions
+var a : integer
+var b : real is 2.5
+a := b
+print a

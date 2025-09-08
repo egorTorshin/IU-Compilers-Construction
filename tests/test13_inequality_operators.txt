@@ -1,0 +1,4 @@
+// Test 13: Inequality operators
+var x : integer is 5
+var y : integer is 10
+print x <> y

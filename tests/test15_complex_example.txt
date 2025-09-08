@@ -1,0 +1,6 @@
+// Test 15: Complex example
+var sum : real is 0.0
+var count : integer is 2
+if count > 0 then
+    print "valid"
+end
