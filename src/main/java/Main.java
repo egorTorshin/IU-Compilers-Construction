@@ -67,6 +67,7 @@ public class Main {
         tk_INTEGER,
         tk_REAL,
         tk_BOOLEAN,
+        tk_STRING,
         tk_VAR,
         tk_PRINT,
         tk_IS,
@@ -162,6 +163,14 @@ public class Main {
         
         public char peek() {
             return lookahead;
+        }
+        
+        private char peekNext() {
+            int nextIndex = position + 1;
+            if (nextIndex < input.length()) {
+                return input.charAt(nextIndex);
+            }
+            return '\0';
         }
         
         public boolean isEOF() {
@@ -419,6 +428,29 @@ public class Main {
             
             String identifier = sb.toString();
             currentTokenValue = identifier;
+
+            // Detect illegal characters used as part of an identifier without whitespace
+            // Example: name@var, total%sum
+            if (peek() == '@') {
+                StringBuilder invalid = new StringBuilder(identifier);
+                invalid.append(get()); // consume '@'
+                while (Character.isLetterOrDigit(peek()) || peek() == '_') {
+                    invalid.append(get());
+                }
+                currentTokenValue = invalid.toString();
+                reportError("Invalid identifier '" + currentTokenValue + "' - illegal character '@' in identifier", line, column);
+                return TokenCode.tk_ERROR;
+            }
+            if (peek() == '%' && (Character.isLetterOrDigit(peekNext()) || peekNext() == '_')) {
+                StringBuilder invalid = new StringBuilder(identifier);
+                invalid.append(get()); // consume '%'
+                while (Character.isLetterOrDigit(peek()) || peek() == '_') {
+                    invalid.append(get());
+                }
+                currentTokenValue = invalid.toString();
+                reportError("Invalid identifier '" + currentTokenValue + "' - illegal character '%' in identifier", line, column);
+                return TokenCode.tk_ERROR;
+            }
             
             switch (identifier) {
                 case "var": return TokenCode.tk_VAR;
@@ -426,14 +458,9 @@ public class Main {
                 case "integer": return TokenCode.tk_INTEGER;
                 case "real": return TokenCode.tk_REAL;
                 case "boolean": return TokenCode.tk_BOOLEAN;
+                case "string": return TokenCode.tk_STRING;
                 case "is": return TokenCode.tk_IS;
                 case "end": 
-                    if (peek() == '.') {
-                        reportError("Invalid syntax: 'end.' is not a valid construct", line, column);
-                        get(); // consume the dot
-                        currentTokenValue = "end.";
-                        return TokenCode.tk_ERROR;
-                    }
                     return TokenCode.tk_END;
                 case "print": return TokenCode.tk_PRINT;
                 case "for": return TokenCode.tk_FOR;
