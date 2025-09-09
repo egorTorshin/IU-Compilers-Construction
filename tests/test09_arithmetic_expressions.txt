@@ -1,4 +1,4 @@
-// Test 9: Arithmetic expressions
+# Test 9: Arithmetic expressions
 var a : integer is 10
 var b : integer is 3
 print a + b

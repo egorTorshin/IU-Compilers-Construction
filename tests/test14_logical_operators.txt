@@ -1,4 +1,4 @@
-// Test 14: Logical operators
+# Test 14: Logical operators
 var a : boolean is true
 var b : boolean is false
 print a and b

@@ -1,4 +1,4 @@
-// Test 5: While loops
+# Test 5: While loops
 var i : integer is 0
 while i < 3 loop
     print i

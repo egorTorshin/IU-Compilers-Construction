@@ -1,4 +1,4 @@
-// Test 1: Simple variables and assignment
-var x : integer is 42
+# Test 1: Simple variables and assignment
+va x : integer is 42
 x := 100
 print x

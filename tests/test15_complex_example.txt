@@ -1,6 +1,8 @@
-// Test 15: Complex example
-var sum : real is 0.0
-var count : integer is 2
-if count > 0 then
-    print "valid"
+# Test 15: Routines
+routine add(a : integer, b : integer): integer is
+    return a + b
 end
+
+var result : integer
+result := add(5, 3)
+print result

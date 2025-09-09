@@ -1,4 +1,4 @@
-// Test 6: For range loops
+# Test 6: For range loops
 for i in 0..2 loop
     print i
 end

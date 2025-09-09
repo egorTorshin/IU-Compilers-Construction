@@ -1,4 +1,4 @@
-// Test 4: Record access
+# Test 4: Record access
 type Point is record
     var x : integer
     var y : integer

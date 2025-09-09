@@ -1,0 +1,22 @@
+# Test: Multiple lexical errors
+
+var 3count$ : integer            # Error: identifier starts with digit and illegal '$'
+var valid_var : real
+valid_var := 3.14.15             # Error: invalid real literal with multiple dots
+
+print "Hello, world              # Error: unterminated string literal
+
+x := 10 @ 20                    # Error: illegal character '@'
+
+var money$ : real               # Error: illegal character '$' in variable name
+
+{ This is a comment without closing         # Error: unmatched comment delimiter
+
+y := 25abc                      # Error: invalid integer literal with trailing chars
+
+z := "Test string with no end    # Error: unterminated string literal again
+
+function testFunc():integer;
+begin
+    return 100$\                # Error: illegal character '$' in token
+end

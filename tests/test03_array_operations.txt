@@ -1,4 +1,4 @@
-// Test 3: Array operations
+# Test 3: Array operations
 type IntArray is array[3] integer
 var arr : IntArray
 arr[0] := 10

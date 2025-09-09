@@ -1,4 +1,4 @@
-// Test 11: Type declarations
+# Test 11: Type declarations
 type Counter is integer
 var cnt : Counter is 0
 cnt := cnt + 1
