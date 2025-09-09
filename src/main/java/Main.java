@@ -177,48 +177,6 @@ public class Main {
             System.err.println("ERROR at line " + line + ", col " + column + ": " + message);
         }
         
-        private String checkForTypos(String identifier) {
-            String[] keywords = {"var", "print", "integer", "real", "boolean", "if", "then", "else", 
-                               "while", "for", "loop", "end", "type", "array", "record", "routine", 
-                               "return", "and", "or", "not", "true", "false", "is", "in"};
-            
-            for (String keyword : keywords) {
-                if (isTypo(identifier, keyword)) {
-                    return keyword;
-                }
-            }
-            return null;
-        }
-        
-        private boolean isTypo(String input, String correct) {
-            if (input.length() < 2 || correct.length() < 2) return false;
-            
-            if (input.length() == correct.length()) {
-                int differences = 0;
-                for (int i = 0; i < input.length(); i++) {
-                    if (input.charAt(i) != correct.charAt(i)) {
-                        differences++;
-                    }
-                }
-                if (differences == 1) return true;
-            }
-            
-            if (input.length() == correct.length() - 1) {
-                for (int i = 0; i < correct.length(); i++) {
-                    String withoutChar = correct.substring(0, i) + correct.substring(i + 1);
-                    if (input.equals(withoutChar)) return true;
-                }
-            }
-            
-            if (input.length() == correct.length() + 1) {
-                for (int i = 0; i < input.length(); i++) {
-                    String withoutChar = input.substring(0, i) + input.substring(i + 1);
-                    if (withoutChar.equals(correct)) return true;
-                }
-            }
-            
-            return false;
-        }
         
         public Token nextToken() {
             while (true) {
@@ -362,6 +320,9 @@ public class Main {
                 case '"':
                     return handleStringLiteral();
                     
+                case '\'':
+                    return handleSingleQuotedString();
+                    
                 default:
                     if (Character.isDigit(ch)) {
                         return handleNumber(ch);
@@ -386,6 +347,22 @@ public class Main {
                 return TokenCode.tk_STRING_LITERAL;
             } else {
                 reportError("Unterminated string literal", line, column);
+                currentTokenValue = sb.toString();
+                return TokenCode.tk_ERROR;
+            }
+        }
+        
+        private TokenCode handleSingleQuotedString() {
+            StringBuilder sb = new StringBuilder();
+            while (peek() != '\'' && peek() != '\0' && peek() != '\n' && peek() != '#') {
+                sb.append(get());
+            }
+            if (peek() == '\'') {
+                get();
+                currentTokenValue = sb.toString();
+                return TokenCode.tk_STRING_LITERAL;
+            } else {
+                reportError("Unterminated single-quoted string literal", line, column);
                 currentTokenValue = sb.toString();
                 return TokenCode.tk_ERROR;
             }
@@ -450,7 +427,14 @@ public class Main {
                 case "real": return TokenCode.tk_REAL;
                 case "boolean": return TokenCode.tk_BOOLEAN;
                 case "is": return TokenCode.tk_IS;
-                case "end": return TokenCode.tk_END;
+                case "end": 
+                    if (peek() == '.') {
+                        reportError("Invalid syntax: 'end.' is not a valid construct", line, column);
+                        get(); // consume the dot
+                        currentTokenValue = "end.";
+                        return TokenCode.tk_ERROR;
+                    }
+                    return TokenCode.tk_END;
                 case "print": return TokenCode.tk_PRINT;
                 case "for": return TokenCode.tk_FOR;
                 case "while": return TokenCode.tk_WHILE;
@@ -470,11 +454,6 @@ public class Main {
                 case "true": return TokenCode.tk_BOOLEAN_LITERAL;
                 case "false": return TokenCode.tk_BOOLEAN_LITERAL;
                 default:
-                    String suggestion = checkForTypos(identifier);
-                    if (suggestion != null) {
-                        reportError("Unknown identifier '" + identifier + "'. Did you mean '" + suggestion + "'?", line, column);
-                        return TokenCode.tk_ERROR;
-                    }
                     return TokenCode.tk_IDENTIFIER;
             }
         }
