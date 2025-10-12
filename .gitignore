@@ -42,19 +42,7 @@ buildNumber.properties
 .project
 .classpath
 
-# OS-specific files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
-# Generated sources (JFlex and Java CUP)
-src/main/java/com/compiler/Lexer.java
-src/main/java/com/compiler/sym.java
-src/main/java/com/compiler/ImperativeLangParser.java
 
 # Test output files
 TestAll.class
@@ -79,17 +67,6 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Mac
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Linux
-*~
-
-# JFlex and Java CUP generated files
-*.jflex
-*.cup
 
 # Maven wrapper
 .mvn/wrapper/maven-wrapper.jar

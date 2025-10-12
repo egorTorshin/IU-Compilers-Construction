@@ -1,0 +1,203 @@
+package com.compiler;
+
+import java_cup.runtime.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import com.compiler.*;
+
+parser code {:
+    public void debug_message(String message) {
+        System.out.println("DEBUG: " + message);
+    }
+:}
+
+// Terminals (tokens)
+terminal String IDENTIFIER, STRING_LITERAL;
+terminal Integer INTEGER_LITERAL;
+terminal Double REAL_LITERAL;
+terminal Boolean BOOLEAN_LITERAL;
+terminal VAR, IF, ELSE, WHILE, FOR, IN, ROUTINE, TYPE, RETURN, TRUE, FALSE;
+terminal END, THEN, LOOP, PRINT, READ, IS, AS, REVERSE, RECORD;
+terminal INTEGER, REAL, BOOLEAN, ARRAY, STRING;
+terminal COLON, ASSIGN, SEMICOLON, LPAREN, RPAREN, LBRACE, RBRACE;
+terminal LBRACKET, RBRACKET, DOT, COMMA, RANGE;
+terminal PLUS, MINUS, MULTIPLY, DIVIDE, MOD;
+terminal EQUAL, NOT_EQUAL, LESS, LESS_OR_EQUAL, GREATER, GREATER_OR_EQUAL;
+terminal AND, OR, XOR, NOT;
+terminal UMINUS;
+terminal FLOAT;
+
+// Non-terminals
+non terminal Program program;
+non terminal List<Statement> statement_list, else_opt;
+non terminal Statement statement;
+non terminal Statement if_statement;
+non terminal Expression expression;
+non terminal List<Expression> argument_list;
+non terminal List<Parameter> parameter_list, parameter_list_opt;
+non terminal Parameter parameter;
+non terminal Type type_spec;
+non terminal List<VariableDeclaration> record_body;
+non terminal Reverse reverse_opt;
+non terminal Statement global_declaration;
+non terminal List<Statement> routine_body;
+non terminal List<Statement> else_clause;
+
+// Precedences and associativity
+precedence left OR, XOR;
+precedence left AND;
+precedence left NOT;
+precedence nonassoc EQUAL, NOT_EQUAL, LESS, LESS_OR_EQUAL, GREATER, GREATER_OR_EQUAL;
+precedence left PLUS, MINUS;
+precedence left MULTIPLY, DIVIDE, MOD;
+precedence right UMINUS;
+precedence left DOT;
+
+// Start with the program
+start with program;
+
+// Grammar rules
+program ::= 
+    statement_list:stmts {: RESULT = new Program(stmts); :}
+    ;
+
+statement_list ::= 
+    global_declaration:decl {: List<Statement> list = new ArrayList<>(); list.add(decl); RESULT = list; :}
+    | statement_list:list global_declaration:decl {: list.add(decl); RESULT = list; :}
+    ;
+
+global_declaration ::=
+    VAR IDENTIFIER:id COLON type_spec:type SEMICOLON
+    {: RESULT = type instanceof ArrayType ? 
+                new ArrayDecl(id, (ArrayType)type) : 
+                new VarDecl(id, type, null); :}
+    | VAR IDENTIFIER:id COLON type_spec:type IS expression:init SEMICOLON
+    {: RESULT = new VarDecl(id, type, init); :}
+    | TYPE IDENTIFIER:name IS RECORD record_body:fields END SEMICOLON
+    {: RESULT = new TypeDecl(name, new RecordType(fields)); :}
+    | ROUTINE IDENTIFIER:name LPAREN parameter_list_opt:params RPAREN COLON type_spec:returnType IS routine_body:body END SEMICOLON
+    {: RESULT = new RoutineDecl(name, params, returnType, body); :}
+    | ROUTINE IDENTIFIER:name LPAREN parameter_list_opt:params RPAREN IS routine_body:body END SEMICOLON
+    {: RESULT = new RoutineDecl(name, params, null, body); :}
+    ;
+
+routine_body ::= 
+    statement:stmt {: List<Statement> list = new ArrayList<>(); list.add(stmt); RESULT = list; :}
+    | routine_body:list statement:stmt {: list.add(stmt); RESULT = list; :}
+    ;
+
+statement ::= 
+    VAR IDENTIFIER:id COLON type_spec:type IS expression:init SEMICOLON
+    {: RESULT = new VarDecl(id, type, init); :}
+    | VAR IDENTIFIER:id COLON type_spec:type SEMICOLON
+    {: RESULT = new VarDecl(id, type, null); :}
+    | if_statement:stmt
+    {: RESULT = stmt; :}
+    | WHILE expression:cond LOOP routine_body:body END SEMICOLON
+    {: RESULT = new WhileStatement(cond, body); :}
+    | FOR IDENTIFIER:var IN reverse_opt:rev expression:start RANGE expression:end LOOP routine_body:body END SEMICOLON
+    {: RESULT = new ForLoop(var, rev, start, end, body); :}
+    | IDENTIFIER:id ASSIGN expression:expr SEMICOLON
+    {: RESULT = new Assignment(id, expr); :}
+    | IDENTIFIER:record DOT IDENTIFIER:field ASSIGN expression:expr SEMICOLON
+    {: RESULT = new Assignment(record + "." + field, expr); :}
+    | IDENTIFIER:id LBRACKET expression:index RBRACKET ASSIGN expression:expr SEMICOLON
+    {: RESULT = new Assignment(id, index, expr); :}
+    | PRINT LPAREN expression:expr RPAREN SEMICOLON
+    {: RESULT = new PrintStatement(expr); :}
+    | READ LPAREN IDENTIFIER:id RPAREN SEMICOLON
+    {: RESULT = new ReadStatement(id); :}
+    | RETURN expression:expr SEMICOLON
+    {: RESULT = new ReturnStatement(expr); :}
+    ;
+
+if_statement ::=
+    IF expression:cond THEN routine_body:thenBody else_clause:elseBody END SEMICOLON
+    {: RESULT = new IfStatement(cond, thenBody, elseBody); :}
+    | IF expression:cond THEN routine_body:thenBody END SEMICOLON
+    {: RESULT = new IfStatement(cond, thenBody, new ArrayList<>()); :}
+    ;
+
+else_clause ::=
+    ELSE routine_body:elseBody {: RESULT = elseBody; :}
+    ;
+
+parameter_list_opt ::= 
+    parameter_list:params {: RESULT = params; :}
+    | /* empty */ {: RESULT = new ArrayList<>(); :}
+    ;
+
+parameter_list ::= 
+    parameter:p {: List<Parameter> list = new ArrayList<>(); list.add(p); RESULT = list; :}
+    | parameter_list:list COMMA parameter:p {: list.add(p); RESULT = list; :}
+    ;
+
+parameter ::= 
+    IDENTIFIER:name COLON type_spec:type {: RESULT = new Parameter(name, type); :}
+    ;
+
+type_spec ::= 
+    INTEGER {: RESULT = Type.INTEGER; :}
+    | REAL {: RESULT = new SimpleType("real"); :}
+    | FLOAT {: RESULT = new SimpleType("float"); :}
+    | BOOLEAN {: RESULT = Type.BOOLEAN; :}
+    | STRING {: RESULT = Type.STRING; :}
+    | ARRAY LBRACKET INTEGER_LITERAL:size RBRACKET type_spec:elemType 
+    {: RESULT = new ArrayType(elemType, size); :}
+    | IDENTIFIER:name {: RESULT = new SimpleType(name); :}
+    ;
+
+record_body ::= 
+    VAR IDENTIFIER:id COLON type_spec:type SEMICOLON
+    {: List<VariableDeclaration> list = new ArrayList<>(); 
+       list.add(new VarDecl(id, type, null)); 
+       RESULT = list; :}
+    | record_body:list VAR IDENTIFIER:id COLON type_spec:type SEMICOLON
+    {: list.add(new VarDecl(id, type, null)); RESULT = list; :}
+    ;
+
+expression ::= 
+    INTEGER_LITERAL:value {: RESULT = new IntegerLiteral(value); :}
+    | REAL_LITERAL:value {: RESULT = new RealLiteral(value); :}
+    | STRING_LITERAL:value 
+    {: 
+        RESULT = new StringLiteral(value); 
+    :}
+    | BOOLEAN_LITERAL:value {: RESULT = new BooleanLiteral(value); :}
+    | IDENTIFIER:name {: RESULT = new VariableReference(name); :}
+    | IDENTIFIER:record DOT IDENTIFIER:field 
+    {: RESULT = new RecordAccess(record, field); :}
+    | expression:left PLUS expression:right {: RESULT = new BinaryExpression(left, "+", right); :}
+    | expression:left MINUS expression:right {: RESULT = new BinaryExpression(left, "-", right); :}
+    | expression:left MULTIPLY expression:right {: RESULT = new BinaryExpression(left, "*", right); :}
+    | expression:left DIVIDE expression:right {: RESULT = new BinaryExpression(left, "/", right); :}
+    | expression:left MOD expression:right {: RESULT = new BinaryExpression(left, "%", right); :}
+    | MINUS expression:expr {: RESULT = new UnaryExpression("-", expr); :} %prec UMINUS
+    | expression:left AND expression:right {: RESULT = new BinaryExpression(left, "and", right); :}
+    | expression:left OR expression:right {: RESULT = new BinaryExpression(left, "or", right); :}
+    | expression:left XOR expression:right {: RESULT = new BinaryExpression(left, "xor", right); :}
+    | NOT expression:expr {: RESULT = new UnaryExpression("not", expr); :}
+    | expression:left EQUAL expression:right {: RESULT = new BinaryExpression(left, "=", right); :}
+    | expression:left NOT_EQUAL expression:right {: RESULT = new BinaryExpression(left, "!=", right); :}
+    | expression:left LESS expression:right {: RESULT = new BinaryExpression(left, "<", right); :}
+    | expression:left LESS_OR_EQUAL expression:right {: RESULT = new BinaryExpression(left, "<=", right); :}
+    | expression:left GREATER expression:right {: RESULT = new BinaryExpression(left, ">", right); :}
+    | expression:left GREATER_OR_EQUAL expression:right {: RESULT = new BinaryExpression(left, ">=", right); :}
+    | expression:expr AS type_spec:targetType {: RESULT = new TypeCast(expr, targetType); :}
+    | IDENTIFIER:name LBRACKET expression:index RBRACKET {: RESULT = new ArrayAccess(name, index); :}
+    | IDENTIFIER:name LPAREN argument_list:args RPAREN {: RESULT = new RoutineCall(name, args); :}
+    | LPAREN expression:expr RPAREN {: RESULT = expr; :}
+    ;
+
+argument_list ::= 
+    expression:expr {: List<Expression> list = new ArrayList<>(); list.add(expr); RESULT = list; :}
+    | argument_list:list COMMA expression:expr {: list.add(expr); RESULT = list; :}
+    | /* empty */ {: RESULT = new ArrayList<>(); :}
+    ;
+
+reverse_opt ::= 
+    REVERSE {: RESULT = new Reverse(true); :}
+    | /* empty */ {: RESULT = new Reverse(false); :}
+    ;

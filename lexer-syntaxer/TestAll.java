@@ -10,12 +10,12 @@ public class TestAll {
     
     public static void main(String[] args) {
         // Test all example files
-        testAllExamples();
+        testAll();
     }
     
-    private static void testAllExamples() {
-        String examplesDir = "examples";
-        File dir = new File(examplesDir);
+    private static void testAll() {
+        String testsDir = "tests";
+        File dir = new File(testsDir);
         
         
         File[] files = dir.listFiles((d, name) -> name.endsWith(".txt"));
@@ -26,7 +26,7 @@ public class TestAll {
     }
     
     private static void testFile(String filename) {
-        String filePath = "examples/" + filename;
+        String filePath = "tests/" + filename;
         
         System.out.println("Testing: " + filename);
         System.out.println("------------------------------------------------------------");
