@@ -1,0 +1,5 @@
+routine main() is
+    var x: integer is 5;
+    var y: integer is 10;
+    print(x != y);
+end;

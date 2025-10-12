@@ -1,0 +1,11 @@
+routine main() is
+    var i: integer;
+    var j: integer;
+
+    for i in 1..5 loop
+        for j in 1..5 loop
+            var product: integer is i * j;
+            print(i + " * " + j + " = " + product);
+        end;
+    end;
+end;

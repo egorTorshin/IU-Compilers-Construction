@@ -1,0 +1,6 @@
+routine main() is
+    var i: integer;
+    for i in 0 .. 2 loop
+        print(i);
+    end;
+end;

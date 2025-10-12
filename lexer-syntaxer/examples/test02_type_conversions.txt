@@ -1,0 +1,6 @@
+routine main() is
+    var a: integer;
+    var b: real is 2.5;
+    a := b as integer;
+    print(a);
+end;

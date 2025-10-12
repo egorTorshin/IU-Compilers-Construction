@@ -1,0 +1,5 @@
+routine main() is
+    var a: integer is 10;
+    var b: integer is 3;
+    print(a + b);
+end;
