@@ -3,5 +3,5 @@ var numbers: array [5] integer;
 routine main() is
     numbers[1] := 10;
 
-    print(number[1]);
+    print(numbers[1]);
 end;

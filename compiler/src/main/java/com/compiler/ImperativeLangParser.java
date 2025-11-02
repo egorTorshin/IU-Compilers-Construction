@@ -1107,7 +1107,7 @@ class CUP$ImperativeLangParser$actions {
 		int valueright = ((java_cup.runtime.Symbol)CUP$ImperativeLangParser$stack.peek()).right;
 		String value = (String)((java_cup.runtime.Symbol) CUP$ImperativeLangParser$stack.peek()).value;
 		 
-        System.out.println("[DEBUG] Parsing string literal: " + value);
+        // System.out.println("[DEBUG] Parsing string literal: " + value);  // Commented out for clean output
         RESULT = new StringLiteral(value); 
     
               CUP$ImperativeLangParser$result = parser.getSymbolFactory().newSymbol("expression",5, ((java_cup.runtime.Symbol)CUP$ImperativeLangParser$stack.peek()), ((java_cup.runtime.Symbol)CUP$ImperativeLangParser$stack.peek()), RESULT);
