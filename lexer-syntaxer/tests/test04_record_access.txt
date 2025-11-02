@@ -1,0 +1,15 @@
+type Person is record
+    var name: string;
+    var age: integer;
+end;
+
+
+var john: Person;
+
+routine main() is
+    john.name := "Alibaba";
+    john.age := 43;
+
+    print(john.name);
+    print(john.age);
+end;

@@ -1,0 +1,6 @@
+routine main() is
+    var x: integer is 10;
+    if x > 5 then
+        print("big");
+    end;
+end;

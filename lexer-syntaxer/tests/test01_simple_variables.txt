@@ -1,0 +1,6 @@
+routine main() is
+    var x: integer is 42;
+    print(x);
+    x := 100;
+    print(x);
+end;

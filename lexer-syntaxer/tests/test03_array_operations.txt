@@ -1,0 +1,7 @@
+var numbers: array [5] integer;
+
+routine main() is
+    numbers[1] := 10;
+
+    print(number[1]);
+end;
