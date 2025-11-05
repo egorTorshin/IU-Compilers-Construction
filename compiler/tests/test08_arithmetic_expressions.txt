@@ -1,5 +1,7 @@
 routine main() is
     var a: integer is 10;
     var b: integer is 3;
+    var x: integer is 5 + 3;
     print(a + b);
+    print(x);
 end;

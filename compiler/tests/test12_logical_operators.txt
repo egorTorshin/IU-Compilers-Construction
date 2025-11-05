@@ -1,5 +1,0 @@
-routine main() is
-    var a: boolean is true;
-    var b: boolean is false;
-    print(a and b);
-end;

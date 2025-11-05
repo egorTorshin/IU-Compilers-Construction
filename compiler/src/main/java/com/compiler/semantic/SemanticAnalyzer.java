@@ -178,6 +178,9 @@ public class SemanticAnalyzer {
                 return;
             }
             
+            // array bound checking for constant indices
+            checkArrayBounds(assign.getIndex(), (ArrayType) arrayType, target);
+            
             Type elementType = ((ArrayType)arrayType).getElementType();
             Type valueType = getExpressionType(assign.getValue());
             
@@ -279,9 +282,16 @@ public class SemanticAnalyzer {
             errors.add(new SemanticError("While statement condition must be a boolean expression"));
         }
 
+        // enter loop context
+        boolean wasInsideLoop = insideLoop;
+        insideLoop = true;
+
         for (Statement stmt : whileStmt.getBody()) {
             visitStatement(stmt);
         }
+
+        // restore previous loop context
+        insideLoop = wasInsideLoop;
     }
 
     // check for loops
@@ -290,9 +300,16 @@ public class SemanticAnalyzer {
             errors.add(new SemanticError("Undefined loop variable " + forLoop.getVariable()));
         }
 
+        // enter loop context
+        boolean wasInsideLoop = insideLoop;
+        insideLoop = true;
+
         for (Statement stmt : forLoop.getBody()) {
             visitStatement(stmt);
         }
+
+        // restore previous loop context
+        insideLoop = wasInsideLoop;
     }
 
     // check return statements
@@ -396,6 +413,9 @@ public class SemanticAnalyzer {
                 errors.add(new SemanticError("Array index must be an integer"));
                 return null;
             }
+            
+            // array bound checking for constant indices
+            checkArrayBounds(access.getIndex(), (ArrayType) arrayType, arrayName);
             
             usedVariables.add(arrayName);
             return ((ArrayType)arrayType).getElementType();
@@ -636,6 +656,22 @@ public class SemanticAnalyzer {
             return ((SimpleType) type).getName().equals("boolean");
         }
         return false;
+    }
+
+    // check array bounds for constant indices
+    private void checkArrayBounds(Expression indexExpr, ArrayType arrayType, String arrayName) {
+        // only check if index is a constant integer literal
+        if (indexExpr instanceof IntegerLiteral) {
+            int index = ((IntegerLiteral) indexExpr).getValue();
+            int arraySize = arrayType.getSize();
+            
+            if (index < 0) {
+                errors.add(new SemanticError("Array index " + index + " is negative for array " + arrayName));
+            } else if (index >= arraySize) {
+                errors.add(new SemanticError("Array index " + index + " is out of bounds for array " + 
+                    arrayName + " (size: " + arraySize + ")"));
+            }
+        }
     }
 
     private boolean isValidCast(Type sourceType, Type targetType) {

@@ -2,6 +2,7 @@ package com.compiler;
 
 import com.compiler.semantic.SemanticAnalyzer;
 import com.compiler.semantic.SemanticError;
+import com.compiler.optimizer.Optimizer;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.Symbol;
 import java.io.FileReader;
@@ -9,13 +10,11 @@ import java.util.List;
 import java.io.*;
 import java.util.ArrayList;
 
-// compiler frontend: lexer → parser → semantic
-// modes: single file, --test-all, --debug, --verbose
 public class Main {
     private static boolean debug = false;
     private static boolean verbose = false;
+    private static boolean optimize = false;
     
-    // ansi colors for output
     private static final String GREEN = "\u001B[32m";
     private static final String RED = "\u001B[31m";
     private static final String YELLOW = "\u001B[33m";
@@ -34,13 +33,30 @@ public class Main {
         }
 
         if (args[0].equals("--test-all")) {
-            boolean verboseMode = args.length > 1 && (args[1].equals("--verbose") || args[1].equals("-v"));
-            runAllTests(verboseMode);
+            boolean verboseMode = false;
+            boolean optimizeMode = false;
+            for (int i = 1; i < args.length; i++) {
+                if (args[i].equals("--verbose") || args[i].equals("-v")) {
+                    verboseMode = true;
+                }
+                if (args[i].equals("--optimize") || args[i].equals("-O")) {
+                    optimizeMode = true;
+                }
+            }
+            runAllTests(verboseMode, optimizeMode);
             return;
         }
 
         String inputFilePath = args[0];
-        debug = args.length > 1 && args[1].equals("--debug");
+        
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equals("--debug")) {
+                debug = true;
+            }
+            if (args[i].equals("--optimize") || args[i].equals("-O")) {
+                optimize = true;
+            }
+        }
         
         compileSingleFile(inputFilePath);
     }
@@ -93,11 +109,28 @@ public class Main {
                 }
                 System.exit(1);
             }
+            
+            int optimizationCount = 0;
+            if (optimize) {
+                if (debug) {
+                    System.err.println("\n" + BOLD + "=== Optimization ===" + RESET);
+                }
+                
+                Optimizer optimizer = new Optimizer(debug);
+                optimizationCount = optimizer.optimize(program);
+                
+                if (debug) {
+                    System.err.println("\nOptimized AST:");
+                    System.err.println(program.toString());
+                }
+            }
 
             if (debug) {
-                System.out.println("\n" + GREEN + "✓ All phases completed successfully!" + RESET);
+                String optMsg = optimize ? " (" + optimizationCount + " optimizations applied)" : "";
+                System.out.println("\n" + GREEN + "✓ All phases completed successfully!" + optMsg + RESET);
             } else {
-                System.out.println(GREEN + "✓ " + RESET + inputFile.getName() + " - OK");
+                String optMsg = optimize ? " [" + optimizationCount + " optimizations]" : "";
+                System.out.println(GREEN + "✓ " + RESET + inputFile.getName() + " - OK" + optMsg);
             }
 
         } catch (Exception e) {
@@ -111,10 +144,12 @@ public class Main {
         }
     }
 
-    private static void runAllTests(boolean verboseMode) {
+    private static void runAllTests(boolean verboseMode, boolean optimizeMode) {
         verbose = verboseMode;
+        optimize = optimizeMode;
         
-        System.out.println(BOLD + "Running Semantic Analyzer Tests" + RESET);
+        String title = optimize ? "Running Tests (with optimization)" : "Running Semantic Analyzer Tests";
+        System.out.println(BOLD + title + RESET);
         System.out.println("─────────────────────────────────");
         
         File testsDir = new File("tests");
@@ -149,6 +184,11 @@ public class Main {
                 List<SemanticError> errors = analyzer.analyze(program);
                 
                 if (errors.isEmpty()) {
+                    if (optimize) {
+                        Optimizer optimizer = new Optimizer(false);
+                        optimizer.optimize(program);
+                    }
+                    
                     System.out.println(GREEN + "✓ " + RESET + testName);
                     passed++;
                 } else {
@@ -193,18 +233,24 @@ public class Main {
     }
 
     private static void printUsage() {
-        System.out.println(BOLD + "Imperative Language Compiler - Frontend" + RESET);
+        System.out.println(BOLD + "Imperative Language Compiler - Frontend + Optimizer" + RESET);
         System.out.println();
         System.out.println("Usage:");
-        System.out.println("  java -cp <classpath> com.compiler.Main <input-file> [--debug]");
-        System.out.println("  java -cp <classpath> com.compiler.Main --test-all [--verbose]");
+        System.out.println("  java -cp <classpath> com.compiler.Main <input-file> [options]");
+        System.out.println("  java -cp <classpath> com.compiler.Main --test-all [options]");
         System.out.println("  java -cp <classpath> com.compiler.Main --help");
         System.out.println();
         System.out.println("Options:");
-        System.out.println("  --debug        Show detailed compilation output");
-        System.out.println("  --test-all     Run all tests in tests/ directory");
-        System.out.println("  --verbose, -v  Show error details (with --test-all)");
-        System.out.println("  --help, -h     Show this help message");
+        System.out.println("  --debug           Show detailed compilation output");
+        System.out.println("  --optimize, -O    Enable AST optimizations");
+        System.out.println("  --test-all        Run all tests in tests/ directory");
+        System.out.println("  --verbose, -v     Show error details (with --test-all)");
+        System.out.println("  --help, -h        Show this help message");
+        System.out.println();
+        System.out.println("Optimizations:");
+        System.out.println("  1. Constant Folding       - Simplify constant expressions");
+        System.out.println("  2. Dead Code Elimination  - Remove unreachable code");
+        System.out.println("  3. Unused Variables       - Remove unused declarations");
         System.out.println();
         System.out.println("Examples:");
         System.out.println("  # Compile single file");
@@ -213,10 +259,16 @@ public class Main {
         System.out.println("  # With debug output");
         System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main tests/test01.txt --debug");
         System.out.println();
+        System.out.println("  # With optimization");
+        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main tests/test01.txt --optimize");
+        System.out.println();
+        System.out.println("  # With debug and optimization");
+        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main tests/test01.txt --debug --optimize");
+        System.out.println();
         System.out.println("  # Run all tests");
         System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main --test-all");
         System.out.println();
-        System.out.println("  # Run all tests with error details");
-        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main --test-all --verbose");
+        System.out.println("  # Run all tests with optimization");
+        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main --test-all --optimize");
     }
 }

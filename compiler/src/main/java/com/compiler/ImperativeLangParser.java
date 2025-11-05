@@ -520,7 +520,7 @@ class CUP$ImperativeLangParser$actions {
       /* select the action based on the action number */
       switch (CUP$ImperativeLangParser$act_num)
         {
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 0: // $START ::= program EOF 
             {
               Object RESULT =null;
@@ -534,7 +534,7 @@ class CUP$ImperativeLangParser$actions {
           CUP$ImperativeLangParser$parser.done_parsing();
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 1: // program ::= statement_list 
             {
               Program RESULT =null;
@@ -546,7 +546,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 2: // statement_list ::= global_declaration 
             {
               List<Statement> RESULT =null;
@@ -558,7 +558,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 3: // statement_list ::= statement_list global_declaration 
             {
               List<Statement> RESULT =null;
@@ -573,7 +573,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 4: // global_declaration ::= VAR IDENTIFIER COLON type_spec SEMICOLON 
             {
               Statement RESULT =null;
@@ -590,7 +590,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 5: // global_declaration ::= VAR IDENTIFIER COLON type_spec IS expression SEMICOLON 
             {
               Statement RESULT =null;
@@ -608,7 +608,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 6: // global_declaration ::= TYPE IDENTIFIER IS RECORD record_body END SEMICOLON 
             {
               Statement RESULT =null;
@@ -623,7 +623,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 7: // global_declaration ::= ROUTINE IDENTIFIER LPAREN parameter_list_opt RPAREN COLON type_spec IS routine_body END SEMICOLON 
             {
               Statement RESULT =null;
@@ -644,7 +644,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 8: // global_declaration ::= ROUTINE IDENTIFIER LPAREN parameter_list_opt RPAREN IS routine_body END SEMICOLON 
             {
               Statement RESULT =null;
@@ -662,7 +662,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 9: // routine_body ::= statement 
             {
               List<Statement> RESULT =null;
@@ -674,7 +674,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 10: // routine_body ::= routine_body statement 
             {
               List<Statement> RESULT =null;
@@ -689,7 +689,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 11: // statement ::= VAR IDENTIFIER COLON type_spec IS expression SEMICOLON 
             {
               Statement RESULT =null;
@@ -707,7 +707,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 12: // statement ::= VAR IDENTIFIER COLON type_spec SEMICOLON 
             {
               Statement RESULT =null;
@@ -722,7 +722,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 13: // statement ::= if_statement 
             {
               Statement RESULT =null;
@@ -734,7 +734,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 14: // statement ::= WHILE expression LOOP routine_body END SEMICOLON 
             {
               Statement RESULT =null;
@@ -749,7 +749,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 15: // statement ::= FOR IDENTIFIER IN reverse_opt expression RANGE expression LOOP routine_body END SEMICOLON 
             {
               Statement RESULT =null;
@@ -773,7 +773,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 16: // statement ::= IDENTIFIER ASSIGN expression SEMICOLON 
             {
               Statement RESULT =null;
@@ -788,7 +788,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 17: // statement ::= IDENTIFIER DOT IDENTIFIER ASSIGN expression SEMICOLON 
             {
               Statement RESULT =null;
@@ -806,7 +806,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 18: // statement ::= IDENTIFIER LBRACKET expression RBRACKET ASSIGN expression SEMICOLON 
             {
               Statement RESULT =null;
@@ -824,7 +824,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 19: // statement ::= PRINT LPAREN expression RPAREN SEMICOLON 
             {
               Statement RESULT =null;
@@ -836,7 +836,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 20: // statement ::= READ LPAREN IDENTIFIER RPAREN SEMICOLON 
             {
               Statement RESULT =null;
@@ -848,7 +848,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 21: // statement ::= RETURN expression SEMICOLON 
             {
               Statement RESULT =null;
@@ -860,7 +860,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 22: // if_statement ::= IF expression THEN routine_body else_clause END SEMICOLON 
             {
               Statement RESULT =null;
@@ -878,7 +878,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 23: // if_statement ::= IF expression THEN routine_body END SEMICOLON 
             {
               Statement RESULT =null;
@@ -893,7 +893,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 24: // else_clause ::= ELSE routine_body 
             {
               List<Statement> RESULT =null;
@@ -905,7 +905,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 25: // parameter_list_opt ::= parameter_list 
             {
               List<Parameter> RESULT =null;
@@ -917,7 +917,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 26: // parameter_list_opt ::= 
             {
               List<Parameter> RESULT =null;
@@ -926,7 +926,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 27: // parameter_list ::= parameter 
             {
               List<Parameter> RESULT =null;
@@ -938,7 +938,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 28: // parameter_list ::= parameter_list COMMA parameter 
             {
               List<Parameter> RESULT =null;
@@ -953,7 +953,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 29: // parameter ::= IDENTIFIER COLON type_spec 
             {
               Parameter RESULT =null;
@@ -968,7 +968,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 30: // type_spec ::= INTEGER 
             {
               Type RESULT =null;
@@ -977,7 +977,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 31: // type_spec ::= REAL 
             {
               Type RESULT =null;
@@ -986,7 +986,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 32: // type_spec ::= FLOAT 
             {
               Type RESULT =null;
@@ -995,7 +995,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 33: // type_spec ::= BOOLEAN 
             {
               Type RESULT =null;
@@ -1004,7 +1004,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 34: // type_spec ::= STRING 
             {
               Type RESULT =null;
@@ -1013,7 +1013,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 35: // type_spec ::= ARRAY LBRACKET INTEGER_LITERAL RBRACKET type_spec 
             {
               Type RESULT =null;
@@ -1028,7 +1028,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 36: // type_spec ::= IDENTIFIER 
             {
               Type RESULT =null;
@@ -1040,7 +1040,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 37: // record_body ::= VAR IDENTIFIER COLON type_spec SEMICOLON 
             {
               List<VariableDeclaration> RESULT =null;
@@ -1057,7 +1057,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 38: // record_body ::= record_body VAR IDENTIFIER COLON type_spec SEMICOLON 
             {
               List<VariableDeclaration> RESULT =null;
@@ -1075,7 +1075,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 39: // expression ::= INTEGER_LITERAL 
             {
               Expression RESULT =null;
@@ -1087,7 +1087,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 40: // expression ::= REAL_LITERAL 
             {
               Expression RESULT =null;
@@ -1099,7 +1099,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 41: // expression ::= STRING_LITERAL 
             {
               Expression RESULT =null;
@@ -1114,7 +1114,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 42: // expression ::= BOOLEAN_LITERAL 
             {
               Expression RESULT =null;
@@ -1126,7 +1126,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 43: // expression ::= IDENTIFIER 
             {
               Expression RESULT =null;
@@ -1138,7 +1138,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 44: // expression ::= IDENTIFIER DOT IDENTIFIER 
             {
               Expression RESULT =null;
@@ -1153,7 +1153,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 45: // expression ::= expression PLUS expression 
             {
               Expression RESULT =null;
@@ -1168,7 +1168,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 46: // expression ::= expression MINUS expression 
             {
               Expression RESULT =null;
@@ -1183,7 +1183,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 47: // expression ::= expression MULTIPLY expression 
             {
               Expression RESULT =null;
@@ -1198,7 +1198,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 48: // expression ::= expression DIVIDE expression 
             {
               Expression RESULT =null;
@@ -1213,7 +1213,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 49: // expression ::= expression MOD expression 
             {
               Expression RESULT =null;
@@ -1228,7 +1228,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 50: // expression ::= MINUS expression 
             {
               Expression RESULT =null;
@@ -1240,7 +1240,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 51: // expression ::= expression AND expression 
             {
               Expression RESULT =null;
@@ -1255,7 +1255,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 52: // expression ::= expression OR expression 
             {
               Expression RESULT =null;
@@ -1270,7 +1270,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 53: // expression ::= expression XOR expression 
             {
               Expression RESULT =null;
@@ -1285,7 +1285,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 54: // expression ::= NOT expression 
             {
               Expression RESULT =null;
@@ -1297,7 +1297,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 55: // expression ::= expression EQUAL expression 
             {
               Expression RESULT =null;
@@ -1312,7 +1312,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 56: // expression ::= expression NOT_EQUAL expression 
             {
               Expression RESULT =null;
@@ -1327,7 +1327,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 57: // expression ::= expression LESS expression 
             {
               Expression RESULT =null;
@@ -1342,7 +1342,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 58: // expression ::= expression LESS_OR_EQUAL expression 
             {
               Expression RESULT =null;
@@ -1357,7 +1357,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 59: // expression ::= expression GREATER expression 
             {
               Expression RESULT =null;
@@ -1372,7 +1372,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 60: // expression ::= expression GREATER_OR_EQUAL expression 
             {
               Expression RESULT =null;
@@ -1387,7 +1387,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 61: // expression ::= expression AS type_spec 
             {
               Expression RESULT =null;
@@ -1402,7 +1402,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 62: // expression ::= IDENTIFIER LBRACKET expression RBRACKET 
             {
               Expression RESULT =null;
@@ -1417,7 +1417,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 63: // expression ::= IDENTIFIER LPAREN argument_list RPAREN 
             {
               Expression RESULT =null;
@@ -1432,7 +1432,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 64: // expression ::= LPAREN expression RPAREN 
             {
               Expression RESULT =null;
@@ -1444,7 +1444,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 65: // argument_list ::= expression 
             {
               List<Expression> RESULT =null;
@@ -1456,7 +1456,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 66: // argument_list ::= argument_list COMMA expression 
             {
               List<Expression> RESULT =null;
@@ -1471,7 +1471,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 67: // argument_list ::= 
             {
               List<Expression> RESULT =null;
@@ -1480,7 +1480,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 68: // reverse_opt ::= REVERSE 
             {
               Reverse RESULT =null;
@@ -1489,7 +1489,7 @@ class CUP$ImperativeLangParser$actions {
             }
           return CUP$ImperativeLangParser$result;
 
-          /*. . . . . . . . . . . . . . . . . . . .*/
+          
           case 69: // reverse_opt ::= 
             {
               Reverse RESULT =null;
