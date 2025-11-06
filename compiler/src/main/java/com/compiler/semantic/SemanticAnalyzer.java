@@ -10,7 +10,6 @@ public class SemanticAnalyzer {
     private Stack<Type> expectedReturnTypes;
     private Set<String> usedVariables;
     private boolean insideLoop;
-    private boolean insideRoutine;
     private boolean debug;
 
     public SemanticAnalyzer(boolean debug) {
@@ -152,7 +151,19 @@ public class SemanticAnalyzer {
             return;
         }
 
+        // Declare the variable first so initializers can reference previously declared names
         symbolTable.declareVariable(decl.getName(), declaredType);
+
+        // If there is an initializer, validate its type and trigger expression checks
+        Expression initializer = decl.getInitializer();
+        if (initializer != null) {
+            Type valueType = getExpressionType(initializer);
+            if (!isTypeCompatible(declaredType, valueType)) {
+                errors.add(new SemanticError(
+                        "Type mismatch in initialization: cannot assign value of type " +
+                        valueType + " to variable of type " + declaredType));
+            }
+        }
     }
 
     // check assignments
@@ -771,15 +782,16 @@ public class SemanticAnalyzer {
             expectedReturnTypes.push(routine.getReturnType());
         }
 
-        insideRoutine = true;
-
         for (Statement stmt : routine.getBody()) {
             visitStatement(stmt);
         }
 
-        insideRoutine = false;
-
         if (routine.getReturnType() != null) {
+            // ensure routines with a return type have at least one return in body (conservative)
+            if (!hasReturnStatement(routine.getBody())) {
+                errors.add(new SemanticError("Routine '" + routine.getName() + "' with return type " +
+                        routine.getReturnType() + " must have a return statement"));
+            }
             expectedReturnTypes.pop();
         }
 
