@@ -1,0 +1,16 @@
+routine f(x : integer): integer is
+    print(x);
+    return x;
+end;
+
+routine main(): integer is
+    var a: integer is f(5);
+    if true then
+        return 0;
+    else
+        return 2;
+    end;
+
+    return 10;
+    print(20);
+end;

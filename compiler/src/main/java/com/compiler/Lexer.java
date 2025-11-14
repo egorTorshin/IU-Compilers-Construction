@@ -676,22 +676,29 @@ public class Lexer implements java_cup.runtime.Scanner {
 
   /* user code: */
     private ComplexSymbolFactory symbolFactory;
+    private String fileName = "unknown";
 
     public Lexer(java.io.Reader in, ComplexSymbolFactory sf) {
         this(in);
         this.symbolFactory = sf;
     }
 
+    public Lexer(java.io.Reader in, ComplexSymbolFactory sf, String fileName) {
+        this(in);
+        this.symbolFactory = sf;
+        this.fileName = fileName;
+    }
+
     private Symbol symbol(String name, int sym) {
         return symbolFactory.newSymbol(name, sym, 
-            new Location(yyline+1, yycolumn+1),
-            new Location(yyline+1, yycolumn+yylength()));
+            new Location(fileName, yyline+1, yycolumn+1),
+            new Location(fileName, yyline+1, yycolumn+yylength()));
     }
 
     private Symbol symbol(String name, int sym, Object val) {
         return symbolFactory.newSymbol(name, sym, 
-            new Location(yyline+1, yycolumn+1),
-            new Location(yyline+1, yycolumn+yylength()), val);
+            new Location(fileName, yyline+1, yycolumn+1),
+            new Location(fileName, yyline+1, yycolumn+yylength()), val);
     }
 
 
