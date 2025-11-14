@@ -15,12 +15,6 @@ public class Main {
     private static boolean verbose = false;
     private static boolean optimize = false;
     
-    private static final String GREEN = "\u001B[32m";
-    private static final String RED = "\u001B[31m";
-    private static final String YELLOW = "\u001B[33m";
-    private static final String RESET = "\u001B[0m";
-    private static final String BOLD = "\u001B[1m";
-
     public static void main(String[] args) {
         if (args.length < 1) {
             printUsage();
@@ -65,12 +59,12 @@ public class Main {
         try {
             File inputFile = new File(inputFilePath);
             if (!inputFile.exists()) {
-                System.err.println(RED + "Error: File not found: " + inputFilePath + RESET);
+                System.err.println("Error: File not found: " + inputFilePath);
                 System.exit(1);
             }
 
             if (debug) {
-                System.err.println("\n" + BOLD + "=== Lexical Analysis ===" + RESET);
+                System.err.println("\n" + "=== Lexical Analysis ===");
             }
             
             String fileName = inputFile.getName();
@@ -86,7 +80,7 @@ public class Main {
             }
 
             if (debug) {
-                System.err.println("\n" + BOLD + "=== Syntactic Analysis ===" + RESET);
+                System.err.println("\n" + "=== Syntactic Analysis ===");
             }
             
             ImperativeLangParser parser = new ImperativeLangParser(lexer, symbolFactory);
@@ -96,14 +90,14 @@ public class Main {
             if (debug) {
                 System.err.println("AST:");
                 System.err.println(program.toString());
-                System.err.println("\n" + BOLD + "=== Semantic Analysis ===" + RESET);
+                System.err.println("\n" + "=== Semantic Analysis ===");
             }
             
             SemanticAnalyzer analyzer = new SemanticAnalyzer(debug);
             List<SemanticError> errors = analyzer.analyze(program);
 
             if (!errors.isEmpty()) {
-                System.err.println(RED + "Semantic errors found:" + RESET);
+                System.err.println("Semantic errors found:");
                 for (SemanticError error : errors) {
                     System.err.println("  " + error);
                 }
@@ -113,7 +107,7 @@ public class Main {
             int optimizationCount = 0;
             if (optimize) {
                 if (debug) {
-                    System.err.println("\n" + BOLD + "=== Optimization ===" + RESET);
+                    System.err.println("\n" + "=== Optimization ===");
                 }
                 
                 Optimizer optimizer = new Optimizer(debug);
@@ -125,20 +119,62 @@ public class Main {
                 }
             }
 
+            // Code Generation
+            if (debug) {
+                System.err.println("\n" + "=== Code Generation ===");
+            }
+            
+            // Create output directory if it doesn't exist
+            File outputDir = new File("output");
+            if (!outputDir.exists()) {
+                outputDir.mkdirs();
+            }
+
+            // Generate Jasmin assembly code
+            JasminCodeGenerator codeGen = new JasminCodeGenerator(analyzer.getSymbolTable(), debug);
+            String jasminCode = codeGen.generate(program);
+
+            if (debug) {
+                System.err.println("\nGenerated Jasmin code:");
+                System.err.println("----------------------------");
+                System.err.println(jasminCode);
+                System.err.println("----------------------------\n");
+            }
+
+            // Write Main.j assembly to file
+            String mainJasminFile = outputDir + "/Main.j";
+            try (FileWriter writer = new FileWriter(mainJasminFile)) {
+                writer.write(jasminCode);
+            }
+
+            // Compile all .j files in the output directory
+            File[] jasminFiles = outputDir.listFiles((dir, name) -> name.endsWith(".j"));
+            if (jasminFiles != null) {
+                // First compile record type files
+                for (File jasminFile : jasminFiles) {
+                    if (!jasminFile.getName().equals("Main.j")) {
+                        compileJasminFile(jasminFile.getPath(), outputDir.getPath());
+                    }
+                }
+                
+                // Then compile Main.j
+                compileJasminFile(mainJasminFile, outputDir.getPath());
+            }
+
             if (debug) {
                 String optMsg = optimize ? " (" + optimizationCount + " optimizations applied)" : "";
-                System.out.println("\n" + GREEN + "✓ All phases completed successfully!" + optMsg + RESET);
+                System.out.println("\n" + "All phases completed successfully" + optMsg);
             } else {
                 String optMsg = optimize ? " [" + optimizationCount + " optimizations]" : "";
-                System.out.println(GREEN + "✓ " + RESET + inputFile.getName() + " - OK" + optMsg);
+                System.out.println(inputFile.getName() + " - OK" + optMsg);
             }
 
         } catch (Exception e) {
             if (debug) {
-                System.err.println(RED + "Compilation failed:" + RESET);
+                System.err.println("Compilation failed:");
                 e.printStackTrace(System.err);
             } else {
-                System.err.println(RED + "✗ " + RESET + new File(inputFilePath).getName() + " - " + e.getMessage());
+                System.err.println(new File(inputFilePath).getName() + " - " + e.getMessage());
             }
             System.exit(1);
         }
@@ -149,18 +185,18 @@ public class Main {
         optimize = optimizeMode;
         
         String title = optimize ? "Running Tests (with optimization)" : "Running Semantic Analyzer Tests";
-        System.out.println(BOLD + title + RESET);
+        System.out.println(title);
         System.out.println("─────────────────────────────────");
         
         File testsDir = new File("tests");
         if (!testsDir.exists() || !testsDir.isDirectory()) {
-            System.err.println(RED + "Error: tests/ directory not found" + RESET);
+            System.err.println("Error: tests/ directory not found");
             System.exit(1);
         }
         
         File[] testFiles = testsDir.listFiles((dir, name) -> name.endsWith(".txt"));
         if (testFiles == null || testFiles.length == 0) {
-            System.err.println(RED + "Error: No test files found in tests/" + RESET);
+            System.err.println("Error: No test files found in tests/");
             System.exit(1);
         }
         
@@ -189,13 +225,13 @@ public class Main {
                         optimizer.optimize(program);
                     }
                     
-                    System.out.println(GREEN + "✓ " + RESET + testName);
+                    System.out.println(testName);
                     passed++;
                 } else {
-                    System.out.println(RED + "✗ " + RESET + testName);
+                    System.out.println(testName);
                     if (verbose) {
                         for (SemanticError error : errors) {
-                            System.out.println("    " + YELLOW + error + RESET);
+                            System.out.println("    " + error);
                         }
                     }
                     failed++;
@@ -203,7 +239,7 @@ public class Main {
                 }
                 
             } catch (Exception e) {
-                System.out.println(RED + "✗ " + RESET + testName + " " + YELLOW + "(parse error)" + RESET);
+                System.out.println(testName + " " + "(parse error)");
                 if (verbose) {
                     System.out.println("    " + e.getMessage());
                 }
@@ -214,31 +250,31 @@ public class Main {
         
         System.out.println("─────────────────────────────────");
         System.out.println("Total: " + (passed + failed) + " | " + 
-                           GREEN + "Passed: " + passed + RESET + " | " +
-                           (failed > 0 ? RED : "") + "Failed: " + failed + RESET);
+                           "Passed: " + passed + " | " +
+                           (failed > 0 ? "" : "") + "Failed: " + failed);
         
         if (failed > 0 && !verbose && !failedTests.isEmpty()) {
-            System.out.println("\n" + YELLOW + "Failed tests:" + RESET);
+            System.out.println("\n" + "Failed tests:");
             for (String test : failedTests) {
                 System.out.println("  • " + test);
             }
-            System.out.println("\n💡 Run with --verbose to see error details");
+            System.out.println("\n Run with --verbose to see error details");
         }
         
         if (failed == 0) {
-            System.out.println("\n" + GREEN + "✓ All tests passed!" + RESET);
+            System.out.println("\n" + "All tests passed!");
         }
         
         System.exit(failed > 0 ? 1 : 0);
     }
 
     private static void printUsage() {
-        System.out.println(BOLD + "Imperative Language Compiler - Frontend + Optimizer" + RESET);
+        System.out.println("Imperative Language Compiler - Frontend + Optimizer");
         System.out.println();
         System.out.println("Usage:");
-        System.out.println("  java -cp <classpath> com.compiler.Main <input-file> [options]");
-        System.out.println("  java -cp <classpath> com.compiler.Main --test-all [options]");
-        System.out.println("  java -cp <classpath> com.compiler.Main --help");
+        System.out.println("  java -jar target/IL-compiler.jar <input-file> [options]");
+        System.out.println("  java -jar target/IL-compiler.jar --test-all [options]");
+        System.out.println("  java -jar target/IL-compiler.jar --help");
         System.out.println();
         System.out.println("Options:");
         System.out.println("  --debug           Show detailed compilation output");
@@ -254,21 +290,73 @@ public class Main {
         System.out.println();
         System.out.println("Examples:");
         System.out.println("  # Compile single file");
-        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main tests/test01.txt");
+        System.out.println("  java -jar target/IL-compiler.jar tests/test01.txt");
         System.out.println();
         System.out.println("  # With debug output");
-        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main tests/test01.txt --debug");
+        System.out.println("  java -jar target/IL-compiler.jar tests/test01.txt --debug");
         System.out.println();
         System.out.println("  # With optimization");
-        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main tests/test01.txt --optimize");
+        System.out.println("  java -jar target/IL-compiler.jar tests/test01.txt --optimize");
         System.out.println();
         System.out.println("  # With debug and optimization");
-        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main tests/test01.txt --debug --optimize");
+        System.out.println("  java -jar target/IL-compiler.jar tests/test01.txt --debug --optimize");
         System.out.println();
         System.out.println("  # Run all tests");
-        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main --test-all");
+        System.out.println("  java -jar target/IL-compiler.jar --test-all");
         System.out.println();
         System.out.println("  # Run all tests with optimization");
-        System.out.println("  java -cp \"lib/*:target/classes\" com.compiler.Main --test-all --optimize");
+        System.out.println("  java -jar target/IL-compiler.jar --test-all --optimize");
+    }
+
+    /**
+     * Compiles a Jasmin assembly file into JVM bytecode.
+     * Uses the Jasmin assembler to convert the .j file into a .class file.
+     *
+     * @param jasminFile Path to the input Jasmin assembly file (.j)
+     * @param outputDir Directory where the compiled .class file should be placed
+     */
+    private static void compileJasminFile(String jasminFile, String outputDir) {
+        try {
+            // Get the absolute path to jasmin.jar relative to the compiler directory
+            File compilerDir = new File(".");
+            File jasminJar = new File(compilerDir, "lib/jasmin.jar");
+            if (!jasminJar.exists()) {
+                // Try alternative path
+                jasminJar = new File("compiler/lib/jasmin.jar");
+            }
+            
+            // Use ProcessBuilder to run jasmin.jar
+            ProcessBuilder pb = new ProcessBuilder(
+                "java", 
+                "-jar", 
+                jasminJar.getAbsolutePath(), 
+                "-d", 
+                outputDir, 
+                jasminFile
+            );
+            
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            
+            if (exitCode == 0 && debug) {
+                System.err.println("Successfully compiled " + jasminFile);
+            } else if (exitCode != 0) {
+                System.err.println("Error compiling " + jasminFile + ". Exit code: " + exitCode);
+                
+                // Print error output if any
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.err.println(line);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error compiling " + jasminFile + ": " + e.getMessage());
+            if (debug) {
+                e.printStackTrace(System.err);
+            }
+        }
     }
 }
