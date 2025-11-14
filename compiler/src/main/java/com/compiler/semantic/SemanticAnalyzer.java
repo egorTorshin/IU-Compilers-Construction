@@ -18,7 +18,6 @@ public class SemanticAnalyzer {
         this.expectedReturnTypes = new Stack<>();
         this.usedVariables = new HashSet<>();
         this.insideLoop = false;
-        this.insideRoutine = false;
         this.debug = debug;
     }
 
