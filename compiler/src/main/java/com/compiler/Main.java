@@ -9,6 +9,9 @@ import java.io.FileReader;
 import java.util.List;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.jar.Manifest;
+import java.util.jar.JarOutputStream;
+import java.util.jar.JarEntry;
 
 public class Main {
     private static boolean debug = false;
@@ -161,12 +164,21 @@ public class Main {
                 compileJasminFile(mainJasminFile, outputDir.getPath());
             }
 
+            // Create executable JAR file from compiled .class files
+            if (debug) {
+                System.err.println("\n" + "=== Creating Executable ===");
+            }
+            String executableJar = createExecutableJar(outputDir, inputFile.getName());
+
             if (debug) {
                 String optMsg = optimize ? " (" + optimizationCount + " optimizations applied)" : "";
-                System.out.println("\n" + "All phases completed successfully" + optMsg);
+                System.out.println("\n" + "Compilation completed successfully" + optMsg);
+                System.out.println("Executable created: " + executableJar);
+                System.out.println("Run with: java -jar " + new File(executableJar).getName());
             } else {
                 String optMsg = optimize ? " [" + optimizationCount + " optimizations]" : "";
                 System.out.println(inputFile.getName() + " - OK" + optMsg);
+                System.out.println("Executable: " + new File(executableJar).getName());
             }
 
         } catch (Exception e) {
@@ -306,6 +318,111 @@ public class Main {
         System.out.println();
         System.out.println("  # Run all tests with optimization");
         System.out.println("  java -jar target/IL-compiler.jar --test-all --optimize");
+    }
+
+    /**
+     * Creates an executable JAR file from compiled .class files.
+     * This creates a standalone executable that can be run independently.
+     *
+     * @param outputDir Directory containing the compiled .class files
+     * @param sourceFileName Original source file name (for naming the executable)
+     * @return Path to the created JAR file
+     */
+    private static String createExecutableJar(File outputDir, String sourceFileName) {
+        try {
+            // Get base name without extension
+            String baseName = sourceFileName.replaceFirst("[.][^.]+$", "");
+            String jarFileName = baseName + ".jar";
+            String jarPath = outputDir.getPath() + File.separator + jarFileName;
+            
+            // Try using Java API first (more reliable)
+            try {
+                Manifest manifest = new Manifest();
+                manifest.getMainAttributes().put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0");
+                manifest.getMainAttributes().put(java.util.jar.Attributes.Name.MAIN_CLASS, "Main");
+                manifest.getMainAttributes().put(new java.util.jar.Attributes.Name("Created-By"), "Imperative Language Compiler");
+                
+                try (JarOutputStream jarOut = new JarOutputStream(new FileOutputStream(jarPath), manifest)) {
+                    // Add all .class files from output directory
+                    addClassFilesToJar(outputDir, outputDir, jarOut);
+                }
+                
+                if (debug) {
+                    System.err.println("Created executable JAR: " + jarFileName);
+                }
+                return jarPath;
+            } catch (Exception apiException) {
+                // Fallback to jar command if Java API fails
+                if (debug) {
+                    System.err.println("Java API method failed, trying jar command...");
+                }
+                
+                // Create manifest file
+                String manifestPath = outputDir.getPath() + File.separator + "MANIFEST.MF";
+                try (FileWriter manifestWriter = new FileWriter(manifestPath)) {
+                    manifestWriter.write("Manifest-Version: 1.0\n");
+                    manifestWriter.write("Main-Class: Main\n");
+                    manifestWriter.write("Created-By: Imperative Language Compiler\n");
+                }
+                
+                // Build jar command
+                ProcessBuilder pb = new ProcessBuilder(
+                    "jar", "cfm", jarPath, manifestPath, "-C", outputDir.getPath(), "."
+                );
+                
+                Process process = pb.start();
+                int exitCode = process.waitFor();
+                
+                if (exitCode == 0) {
+                    if (debug) {
+                        System.err.println("Created executable JAR: " + jarFileName);
+                    }
+                    // Clean up manifest file
+                    new File(manifestPath).delete();
+                    return jarPath;
+                } else {
+                    throw new Exception("jar command failed with exit code: " + exitCode);
+                }
+            }
+        } catch (Exception e) {
+            if (debug) {
+                System.err.println("Warning: Could not create JAR file: " + e.getMessage());
+                System.err.println(".class files can still be run with: java -cp " + outputDir.getPath() + " Main");
+            }
+            return outputDir.getPath();
+        }
+    }
+    
+    /**
+     * Recursively adds .class files to a JAR output stream.
+     *
+     * @param rootDir The root directory (for relative paths)
+     * @param currentDir The current directory being processed
+     * @param jarOut The JAR output stream
+     * @throws IOException if file operations fail
+     */
+    private static void addClassFilesToJar(File rootDir, File currentDir, JarOutputStream jarOut) throws IOException {
+        File[] files = currentDir.listFiles();
+        if (files == null) return;
+        
+        for (File file : files) {
+            if (file.isDirectory()) {
+                addClassFilesToJar(rootDir, file, jarOut);
+            } else if (file.getName().endsWith(".class")) {
+                String entryName = rootDir.toPath().relativize(file.toPath()).toString().replace("\\", "/");
+                jarOut.putNextEntry(new JarEntry(entryName));
+                
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        jarOut.write(buffer, 0, bytesRead);
+                    }
+                }
+                
+                jarOut.closeEntry();
+            }
+        }
     }
 
     /**
