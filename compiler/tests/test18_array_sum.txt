@@ -1,4 +1,4 @@
-var arr: array [5] integer;
+var arr: array [6] integer;
 
 routine main() is
     var i: integer;
@@ -8,8 +8,9 @@ routine main() is
     arr[2] := 20;
     arr[3] := 30;
     arr[4] := 40;
+    arr[5] := 50;
     
-    for i in 1 .. 4 loop
+    for i in 1 .. 5 loop
         sum := sum + arr[i];
     end;
     
