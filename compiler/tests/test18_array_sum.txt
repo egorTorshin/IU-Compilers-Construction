@@ -1,0 +1,18 @@
+var arr: array [5] integer;
+
+routine main() is
+    var i: integer;
+    var sum: integer is 0;
+    
+    arr[1] := 10;
+    arr[2] := 20;
+    arr[3] := 30;
+    arr[4] := 40;
+    
+    for i in 1 .. 4 loop
+        sum := sum + arr[i];
+    end;
+    
+    print("Sum: " + sum);
+end;
+

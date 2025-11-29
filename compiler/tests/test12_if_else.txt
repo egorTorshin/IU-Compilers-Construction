@@ -1,0 +1,14 @@
+routine main() is
+    var x: integer is 3;
+    
+    if x > 5 then
+        print("greater than 5");
+    else
+        print("less or equal to 5");
+    end;
+    
+    if x = 3 then
+        print("x is 3");
+    end;
+end;
+

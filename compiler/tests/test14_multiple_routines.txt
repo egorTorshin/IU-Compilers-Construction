@@ -1,0 +1,16 @@
+routine add(a: integer, b: integer): integer is
+    return a + b;
+end;
+
+routine multiply(a: integer, b: integer): integer is
+    return a * b;
+end;
+
+routine main() is
+    var sum: integer is add(3, 4);
+    var product: integer is multiply(3, 4);
+    
+    print(sum);
+    print(product);
+end;
+

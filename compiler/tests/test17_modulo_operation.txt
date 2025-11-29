@@ -1,0 +1,9 @@
+routine main() is
+    var a: integer is 17;
+    var b: integer is 5;
+    
+    print(a % b);
+    print(10 % 3);
+    print(15 % 4);
+end;
+

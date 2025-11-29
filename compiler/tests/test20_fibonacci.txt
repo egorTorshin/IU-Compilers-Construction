@@ -1,0 +1,16 @@
+routine fib(n: integer): integer is
+    if n <= 1 then
+        return n;
+    else
+        return fib(n - 1) + fib(n - 2);
+    end;
+end;
+
+routine main() is
+    var i: integer;
+    
+    for i in 0 .. 10 loop
+        print("fib(" + i + ") = " + fib(i));
+    end;
+end;
+
