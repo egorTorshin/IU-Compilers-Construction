@@ -116,3 +116,7 @@ AST construction from tokens with grammar validation.
 - **Java 8+** — implementation language
 
 ---
+# Launch all compiled programs
+```bash
+foreach ($test in Get-ChildItem tests/*.txt | Sort-Object Name) { Write-Host "=== $($test.Name) ===" -ForegroundColor Cyan; java -jar target/IL-compiler.jar $test.FullName 2>&1 | Out-Null; $jarName = $test.BaseName + ".jar"; java -jar "output/$jarName" 2>&1; Write-Host "" }
+```
