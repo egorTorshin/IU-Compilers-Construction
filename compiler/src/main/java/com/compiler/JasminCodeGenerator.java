@@ -176,10 +176,32 @@ public class JasminCodeGenerator {
             }
         }
 
-        // Generate statements
+        // Generate statements - find main routine and check its return type
+        RoutineDecl mainRoutine = null;
         for (Statement stmt : program.getStatements()) {
             if (stmt instanceof RoutineDecl && ((RoutineDecl) stmt).getName().equals("main")) {
-                for (Statement bodyStmt : ((RoutineDecl) stmt).getBody()) {
+                mainRoutine = (RoutineDecl) stmt;
+                break;
+            }
+        }
+        
+        if (mainRoutine != null) {
+            Type returnType = mainRoutine.getReturnType();
+            if (returnType != null && returnType != Type.VOID) {
+                // If main has a return type, call it and discard the result
+                sb.append("    invokestatic Main/main()").append(getTypeDescriptor(returnType)).append("\n");
+                // Pop the return value from stack (it's not used)
+                if (returnType == Type.INTEGER || returnType == Type.BOOLEAN) {
+                    sb.append("    pop\n");
+                } else if (returnType instanceof SimpleType && 
+                          ((SimpleType)returnType).getName().equals("real")) {
+                    sb.append("    pop2\n");  // double takes 2 stack slots
+                } else if (returnType == Type.STRING) {
+                    sb.append("    pop\n");
+                }
+            } else {
+                // If main has no return type (void), inline its body
+                for (Statement bodyStmt : mainRoutine.getBody()) {
                     generateStatement(program, bodyStmt, sb);
                 }
             }
@@ -883,11 +905,11 @@ public class JasminCodeGenerator {
 
         if (sourceType == Type.INTEGER && targetType instanceof SimpleType && 
             ((SimpleType)targetType).getName().equals("real")) {
-            sb.append("    i2f\n");
+            sb.append("    i2d\n");  // Use double conversion
         } else if (sourceType instanceof SimpleType && 
                   ((SimpleType)sourceType).getName().equals("real") && 
                   targetType == Type.INTEGER) {
-            sb.append("    f2i\n");
+            sb.append("    d2i\n");  // Use double conversion
         } else if (sourceType == Type.BOOLEAN && targetType == Type.INTEGER) {
             // No conversion needed
         } else if (sourceType == Type.INTEGER && targetType == Type.BOOLEAN) {
@@ -901,8 +923,8 @@ public class JasminCodeGenerator {
         } else if (sourceType instanceof SimpleType && 
                   ((SimpleType)sourceType).getName().equals("real") && 
                   targetType == Type.BOOLEAN) {
-            sb.append("    fconst_0\n");
-            sb.append("    fcmpl\n");
+            sb.append("    dconst_0\n");  // Use double conversion
+            sb.append("    dcmpl\n");     // Use double conversion
             String label = getNextLabel();
             sb.append("    ifeq ").append(label).append("\n");
             sb.append("    iconst_1\n");

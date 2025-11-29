@@ -1,0 +1,8 @@
+routine main() is
+    var name: string is "Hello";
+    var greeting: string is name + " World!";
+    
+    print(greeting);
+    print("Number: " + 42);
+end;
+
