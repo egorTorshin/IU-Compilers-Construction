@@ -677,7 +677,7 @@ public class SemanticAnalyzer {
             
             if (index < 0) {
                 errors.add(new SemanticError("Array index " + index + " is negative for array " + arrayName));
-            } else if (index >= arraySize) {
+            } else if (index > arraySize) {
                 errors.add(new SemanticError("Array index " + index + " is out of bounds for array " + 
                     arrayName + " (size: " + arraySize + ")"));
             }
