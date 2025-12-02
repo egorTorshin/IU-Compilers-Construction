@@ -79,6 +79,12 @@ After compilation, the compiler creates an executable JAR file in the `output/` 
 # Run the compiled executable JAR file
 java -jar output/program.jar
 ```
+
+```bash
+# run the program with user input
+Get-Content tests/test22_number_analyzer_input.txt | java -jar output/test22_number_analyzer.jar
+```
+
 ## Features
 
 ### Lexical Analysis

@@ -1,0 +1,176 @@
+routine gcd(a: integer, b: integer): integer is
+    var temp: integer;
+    
+    while b != 0 loop
+        temp := b;
+        b := a % b;
+        a := temp;
+    end;
+    
+    return a;
+end;
+
+routine lcm(a: integer, b: integer): integer is
+    return (a * b) / gcd(a, b);
+end;
+
+routine isPrime(n: integer): boolean is
+    var i: integer;
+    
+    if n < 2 then
+        return false;
+    end;
+    
+    if n = 2 then
+        return true;
+    end;
+    
+    if n % 2 = 0 then
+        return false;
+    end;
+    
+    i := 3;
+    while i * i <= n loop
+        if n % i = 0 then
+            return false;
+        end;
+        i := i + 2;
+    end;
+    
+    return true;
+end;
+
+routine main() is
+    var num1: integer;
+    var num2: integer;
+    var result: integer;
+    var i: integer;
+    var count: integer;
+    var num: integer;
+    var first: boolean;
+    
+    print("=== Number Analyzer ===");
+    print("");
+    print("Enter first number: ");
+    read(num1);
+    print("Enter second number: ");
+    read(num2);
+    print("");
+    
+    print("=== Analysis Results ===");
+    print("");
+    
+    print("Number 1: " + num1);
+    if isPrime(num1) then
+        print("  -> Prime number");
+    else
+        print("  -> Composite number");
+    end;
+    
+    if num1 >= 2 then
+        num := num1;
+        first := true;
+        print("Factorization: ");
+        
+        while num % 2 = 0 loop
+            if not first then
+                print(" * ");
+            end;
+            print("2");
+            num := num / 2;
+            first := false;
+        end;
+        
+        i := 3;
+        while i * i <= num loop
+            count := 0;
+            while num % i = 0 loop
+                count := count + 1;
+                num := num / i;
+            end;
+            
+            if count > 0 then
+                if not first then
+                    print(" * ");
+                end;
+                print(i);
+                if count > 1 then
+                    print("^" + count);
+                end;
+                first := false;
+            end;
+            
+            i := i + 2;
+        end;
+        
+        if num > 1 then
+            if not first then
+                print(" * ");
+            end;
+            print(num);
+        end;
+        print("");
+    end;
+    
+    print("Number 2: " + num2);
+    if isPrime(num2) then
+        print("  -> Prime number");
+    else
+        print("  -> Composite number");
+    end;
+    
+    if num2 >= 2 then
+        num := num2;
+        first := true;
+        print("Factorization: ");
+        
+        while num % 2 = 0 loop
+            if not first then
+                print(" * ");
+            end;
+            print("2");
+            num := num / 2;
+            first := false;
+        end;
+        
+        i := 3;
+        while i * i <= num loop
+            count := 0;
+            while num % i = 0 loop
+                count := count + 1;
+                num := num / i;
+            end;
+            
+            if count > 0 then
+                if not first then
+                    print(" * ");
+                end;
+                print(i);
+                if count > 1 then
+                    print("^" + count);
+                end;
+                first := false;
+            end;
+            
+            i := i + 2;
+        end;
+        
+        if num > 1 then
+            if not first then
+                print(" * ");
+            end;
+            print(num);
+        end;
+        print("");
+    end;
+    
+    result := gcd(num1, num2);
+    print("GCD(" + num1 + ", " + num2 + ") = " + result);
+    
+    result := lcm(num1, num2);
+    print("LCM(" + num1 + ", " + num2 + ") = " + result);
+    print("");
+    
+    print("=== End of Analysis ===");
+end;
+
