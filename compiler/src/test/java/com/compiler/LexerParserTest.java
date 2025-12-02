@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.StringReader;
 import java.util.Scanner;
 
+import com.compiler.ast.Program;
+
 /**
  * Test class for Lexer and Parser components.
  * This class provides methods to test the lexical analysis and parsing functionality

@@ -1,0 +1,13 @@
+routine main() is
+    var result1: integer is 2 + 3 * 4;
+    var result2: integer is (10 + 5) * 2;
+    var result3: integer is 100 / 4 - 5;
+    var result4: integer is 7 % 3 + 1;
+    
+    print("Arithmetic constant folding:");
+    print("result1 = " + result1);
+    print("result2 = " + result2);
+    print("result3 = " + result3);
+    print("result4 = " + result4);
+end;
+

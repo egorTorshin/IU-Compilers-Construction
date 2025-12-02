@@ -1,0 +1,23 @@
+routine calculate(x: integer) : integer is
+    if (x > 10) then
+        return x * 2;
+        print("This will never print");
+        x := x + 100;
+    end;
+    
+    return x + 5;
+    print("This is also unreachable");
+end;
+
+routine main() is
+    var result1: integer is calculate(15);
+    var result2: integer is calculate(5);
+    
+    print("Result 1: " + result1);
+    print("Result 2: " + result2);
+    
+    return;
+    print("Program ended");
+    var unused: integer is 42;
+end;
+

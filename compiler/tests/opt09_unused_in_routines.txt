@@ -1,0 +1,22 @@
+routine helper(param: integer) : integer is
+    var localUsed: integer is param * 2;
+    
+    var localUnused1: integer is 100;
+    var localUnused2: real is 2.71;
+    var localUnused3: string is "temp";
+    
+    return localUsed;
+end;
+
+routine main() is
+    var x: integer is 10;
+    var result: integer;
+    
+    var tempUnused: integer is 50;
+    var debugVar: boolean is false;
+    var placeholder: string is "unused";
+    
+    result := helper(x);
+    print("Result: " + result);
+end;
+

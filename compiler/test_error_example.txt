@@ -1,1 +1,0 @@
-routine main() is print(x); end;

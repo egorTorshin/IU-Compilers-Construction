@@ -1,6 +1,37 @@
 package com.compiler.semantic;
 
 import com.compiler.*;
+import com.compiler.ast.ArrayAccess;
+import com.compiler.ast.ArrayDecl;
+import com.compiler.ast.ArrayType;
+import com.compiler.ast.Assignment;
+import com.compiler.ast.BinaryExpression;
+import com.compiler.ast.BooleanLiteral;
+import com.compiler.ast.Expression;
+import com.compiler.ast.ForLoop;
+import com.compiler.ast.IfStatement;
+import com.compiler.ast.IntegerLiteral;
+import com.compiler.ast.Parameter;
+import com.compiler.ast.PrintStatement;
+import com.compiler.ast.Program;
+import com.compiler.ast.RealLiteral;
+import com.compiler.ast.RecordAccess;
+import com.compiler.ast.RecordType;
+import com.compiler.ast.ReturnStatement;
+import com.compiler.ast.RoutineCall;
+import com.compiler.ast.RoutineCallStatement;
+import com.compiler.ast.RoutineDecl;
+import com.compiler.ast.SimpleType;
+import com.compiler.ast.Statement;
+import com.compiler.ast.StringLiteral;
+import com.compiler.ast.Type;
+import com.compiler.ast.TypeCast;
+import com.compiler.ast.TypeDecl;
+import com.compiler.ast.UnaryExpression;
+import com.compiler.ast.VarDecl;
+import com.compiler.ast.VariableReference;
+import com.compiler.ast.WhileStatement;
+
 import java.util.*;
 
 // performs semantic analysis: type checking, scoping, validation

@@ -3,56 +3,62 @@ package com.compiler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.compiler.ast.ArrayAccess;
+import com.compiler.ast.ArrayDecl;
+import com.compiler.ast.ArrayType;
+import com.compiler.ast.Assignment;
+import com.compiler.ast.BinaryExpression;
+import com.compiler.ast.BooleanLiteral;
+import com.compiler.ast.Expression;
+import com.compiler.ast.ForLoop;
+import com.compiler.ast.IfStatement;
+import com.compiler.ast.IntegerLiteral;
+import com.compiler.ast.Parameter;
+import com.compiler.ast.PrintStatement;
+import com.compiler.ast.Program;
+import com.compiler.ast.ReadStatement;
+import com.compiler.ast.RealLiteral;
+import com.compiler.ast.RecordAccess;
+import com.compiler.ast.RecordType;
+import com.compiler.ast.ReturnStatement;
+import com.compiler.ast.RoutineCall;
+import com.compiler.ast.RoutineCallStatement;
+import com.compiler.ast.RoutineDecl;
+import com.compiler.ast.SimpleType;
+import com.compiler.ast.Statement;
+import com.compiler.ast.StringLiteral;
+import com.compiler.ast.Type;
+import com.compiler.ast.TypeCast;
+import com.compiler.ast.TypeDecl;
+import com.compiler.ast.UnaryExpression;
+import com.compiler.ast.VarDecl;
+import com.compiler.ast.VariableReference;
+import com.compiler.ast.WhileStatement;
 import com.compiler.semantic.SymbolTable;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.File;
 
-/**
- * Jasmin bytecode generator for the compiler.
- * This class is responsible for generating JVM bytecode in Jasmin assembly format
- * from the parsed and semantically analyzed program. It handles the translation of
- * high-level language constructs into low-level JVM instructions.
- */
+// generates JVM bytecode in Jasmin assembly format
 public class JasminCodeGenerator {
-    /** Counter for generating unique labels in the bytecode */
     private int labelCounter = 0;
-    /** Maps variable names to their local variable indices */
     private Map<String, Integer> localVariables = new HashMap<>();
-    /** Maps variable names to their types for local variables */
     private Map<String, Type> variableTypes = new HashMap<>();
-    /** Maps variable names to their types for global variables */
     private Map<String, Type> globalVariableTypes = new HashMap<>();
-    /** Flag indicating if the Scanner class has been initialized for input operations */
     private boolean scannerInitialized = false;
-    /** Flag for enabling debug output */
     private boolean debug = false;
 
-    /** Next available index for integer variables */
     private int nextIntVariable = 1;
-    /** Next available index for local variables */
     private int nextLocalVariableIndex = 1;
-    /** Next available index for double variables (starts higher to avoid overlap) */
-    private int nextDoubleVariable = 10;
-    /** Symbol table containing program's semantic information */
+    private int nextDoubleVariable = 10; // starts higher to avoid overlap
     private SymbolTable symbolTable;
 
-    /**
-     * Constructs a new JasminCodeGenerator with the given symbol table and debug setting.
-     *
-     * @param symbolTable The symbol table containing program's semantic information
-     * @param debug Flag to enable/disable debug output during code generation
-     */
     public JasminCodeGenerator(SymbolTable symbolTable, boolean debug) {
         this.symbolTable = symbolTable;
         this.debug = debug;
     }
 
-    /**
-     * Outputs debug information if debug mode is enabled.
-     *
-     * @param message The debug message to output
-     */
     private void debugLog(String message) {
         if (debug) {
             System.err.println("[DEBUG] " + message);
@@ -63,14 +69,13 @@ public class JasminCodeGenerator {
         debugLog("Starting code generation");
         localVariables.clear();
         variableTypes.clear();
-        globalVariableTypes.clear();  // Clear global variables
+        globalVariableTypes.clear();
         StringBuilder sb = new StringBuilder();
 
-        // Generate record type classes first
         debugLog("Generating record type classes");
         for (Statement stmt : program.getStatements()) {
             debugLog("Processing statement: " + stmt.getClass().getSimpleName());
-            if (stmt instanceof TypeDecl) {  // Changed from RecordTypeDecl to TypeDecl
+            if (stmt instanceof TypeDecl) {
                 TypeDecl typeDecl = (TypeDecl) stmt;
                 if (typeDecl.getType() instanceof RecordType) {
                     debugLog("Found record type declaration: " + typeDecl.getName());
@@ -79,17 +84,14 @@ public class JasminCodeGenerator {
             }
         }
 
-        // Class header
         sb.append(".class public Main\n");
         sb.append(".super java/lang/Object\n\n");
 
-        // Add Scanner field at the beginning if needed
         if (!scannerInitialized) {
             sb.append(".field private static scanner Ljava/util/Scanner;\n\n");
             scannerInitialized = true;
         }
 
-        // Generate global variable fields and store their types
         for (Statement stmt : program.getStatements()) {
             if (stmt instanceof VarDecl) {
                 VarDecl varDecl = (VarDecl) stmt;
@@ -100,7 +102,6 @@ public class JasminCodeGenerator {
                   .append(fieldDescriptor)
                   .append("\n\n");
                 
-                // Store the type in globalVariableTypes
                 globalVariableTypes.put(varDecl.getName(), varDecl.getType());
                 debugLog("Stored global variable: " + varDecl.getName() + 
                                  " with type: " + varDecl.getType());
@@ -110,26 +111,22 @@ public class JasminCodeGenerator {
             }
         }
 
-        // Default constructor
         sb.append(".method public <init>()V\n");
         sb.append("    aload_0\n");
         sb.append("    invokespecial java/lang/Object/<init>()V\n");
         sb.append("    return\n");
         sb.append(".end method\n\n");
 
-        // Generate all routine declarations first
         for (Statement stmt : program.getStatements()) {
             if (stmt instanceof RoutineDecl) {
                 generateRoutineDecl(program, (RoutineDecl) stmt, sb);
             }
         }
 
-        // Generate main method
         sb.append(".method public static main([Ljava/lang/String;)V\n");
         sb.append("    .limit stack 6\n");
         sb.append("    .limit locals 20\n\n");
 
-        // Initialize Scanner at the beginning of main if needed
         if (hasReadStatements(program)) {
             sb.append("    new java/util/Scanner\n");
             sb.append("    dup\n");
@@ -138,11 +135,9 @@ public class JasminCodeGenerator {
             sb.append("    putstatic Main/scanner Ljava/util/Scanner;\n\n");
         }
 
-        // Reset local variable counter for main method
-        nextLocalVariableIndex = 1;  // Start at 1 because 0 is reserved for args array
+        nextLocalVariableIndex = 1; // 0 is reserved for args array
         localVariables.clear();
 
-        // Initialize record instances
         for (Statement stmt : program.getStatements()) {
             if (stmt instanceof VarDecl) {
                 VarDecl varDecl = (VarDecl) stmt;
@@ -162,7 +157,6 @@ public class JasminCodeGenerator {
                 Type elementType = ((ArrayType) arrayDecl.getType()).getElementType();
                 int size = ((ArrayType) arrayDecl.getType()).getSize();
                 
-                // Create array
                 sb.append("    ; Initialize array ").append(arrayDecl.getName()).append("\n");
                 sb.append("    bipush ").append(size).append("\n");
                 sb.append("    newarray ");
@@ -176,7 +170,6 @@ public class JasminCodeGenerator {
             }
         }
 
-        // Generate statements - find main routine and check its return type
         RoutineDecl mainRoutine = null;
         for (Statement stmt : program.getStatements()) {
             if (stmt instanceof RoutineDecl && ((RoutineDecl) stmt).getName().equals("main")) {
@@ -188,19 +181,17 @@ public class JasminCodeGenerator {
         if (mainRoutine != null) {
             Type returnType = mainRoutine.getReturnType();
             if (returnType != null && returnType != Type.VOID) {
-                // If main has a return type, call it and discard the result
                 sb.append("    invokestatic Main/main()").append(getTypeDescriptor(returnType)).append("\n");
-                // Pop the return value from stack (it's not used)
+                // pop unused return value
                 if (returnType == Type.INTEGER || returnType == Type.BOOLEAN) {
                     sb.append("    pop\n");
                 } else if (returnType instanceof SimpleType && 
                           ((SimpleType)returnType).getName().equals("real")) {
-                    sb.append("    pop2\n");  // double takes 2 stack slots
+                    sb.append("    pop2\n"); // double takes 2 stack slots
                 } else if (returnType == Type.STRING) {
                     sb.append("    pop\n");
                 }
             } else {
-                // If main has no return type (void), inline its body
                 for (Statement bodyStmt : mainRoutine.getBody()) {
                     generateStatement(program, bodyStmt, sb);
                 }
@@ -215,27 +206,23 @@ public class JasminCodeGenerator {
 
     private void generateRoutineDecl(Program program, RoutineDecl routine, StringBuilder sb) {
         debugLog("Generating routine: " + routine.getName());
-        // Clear local variables for new routine
         localVariables.clear();
         variableTypes.clear();
-        nextLocalVariableIndex = 0; // Start at 0 for methods
+        nextLocalVariableIndex = 0; // methods start at 0
 
         String methodName = routine.getName();
         Type returnType = routine.getReturnType();
         List<Parameter> params = routine.getParameters();
 
-        // Generate method signature
         sb.append(".method public static ").append(methodName).append("(");
         for (Parameter param : params) {
             sb.append(getTypeDescriptor(param.getType()));
         }
         sb.append(")").append(getTypeDescriptor(returnType)).append("\n");
 
-        // Calculate stack and locals limit (you may need to adjust these)
         sb.append("    .limit stack 20\n");
         sb.append("    .limit locals ").append(calculateLocalsLimit(routine)).append("\n\n");
 
-        // Map parameters to local variables
         int paramIndex = 0;
         for (Parameter param : params) {
             localVariables.put(param.getName(), paramIndex);
@@ -244,12 +231,11 @@ public class JasminCodeGenerator {
         }
         nextLocalVariableIndex = paramIndex;
 
-        // Generate routine body
         for (Statement stmt : routine.getBody()) {
             generateStatement(program, stmt, sb);
         }
 
-        // Add default return if needed
+        // add default return if needed
         if (!endsWithReturn(routine.getBody())) {
             if (returnType == null || returnType == Type.VOID) {
                 sb.append("    return\n");
@@ -284,7 +270,6 @@ public class JasminCodeGenerator {
             if (typeName.equals("real")) {
                 return "D";
             }
-            // For record types, ensure we return the proper class descriptor
             Type typeDefinition = symbolTable.getTypeDefinition(typeName);
             if (typeDefinition instanceof RecordType) {
                 return "L" + typeName + ";";
@@ -297,31 +282,25 @@ public class JasminCodeGenerator {
     private void generateRoutineCall(RoutineCall call, StringBuilder sb) {
         debugLog("Generating routine call: " + call.getName());
 
-        // Retrieve the RoutineDecl from the symbol table
         RoutineDecl routine = symbolTable.getRoutine(call.getName());
         List<Parameter> params = routine.getParameters();
 
-        // Generate code for arguments and handle implicit casting
         List<Expression> arguments = call.getArguments();
         for (int i = 0; i < arguments.size(); i++) {
             Expression arg = arguments.get(i);
             generateExpression(arg, sb);
 
-            // Get the parameter type from the RoutineDecl
             Type paramType = params.get(i).getType();
             Type argType = getExpressionType(arg);
             generateImplicitCast(argType, paramType, sb);
         }
 
-        // Generate invocation
         sb.append("    invokestatic Main/").append(call.getName()).append("(");
 
-        // Add parameter descriptors
         for (Parameter param : routine.getParameters()) {
             sb.append(getTypeDescriptor(param.getType()));
         }
 
-        // Add return type
         sb.append(")").append(getTypeDescriptor(routine.getReturnType())).append("\n");
     }
 
@@ -387,17 +366,15 @@ public class JasminCodeGenerator {
         localVariables.put(decl.getName(), varIndex);
         variableTypes.put(decl.getName(), type);
 
-        // Initialize variables to 0/null
         if (type == Type.INTEGER) {
             sb.append("    iconst_0\n");
             sb.append("    istore ").append(varIndex).append("\n");
         } else if (type == Type.STRING) {
-            sb.append("    ldc \"\"\n");  // Initialize string to empty string instead of null
+            sb.append("    ldc \"\"\n");
             sb.append("    astore ").append(varIndex).append("\n");
         }
 
         if (decl.getInitializer() != null) {
-            // Add comment for clarity
             sb.append("    ; var ").append(decl.getName()).append(": ").append(type).append("\n");
 
             if (decl.getInitializer() instanceof TypeCast) {
@@ -405,7 +382,7 @@ public class JasminCodeGenerator {
                 generateExpression(cast.getExpression(), sb);
                 generateTypeCastAndStore(getExpressionType(cast.getExpression()), type, varIndex, sb);
             } else if (type == Type.STRING && decl.getInitializer() instanceof BinaryExpression) {
-                // Handle string concatenation in initialization
+                // string concatenation
                 sb.append("    new java/lang/StringBuilder\n");
                 sb.append("    dup\n");
                 sb.append("    invokespecial java/lang/StringBuilder/<init>()V\n");
@@ -424,7 +401,7 @@ public class JasminCodeGenerator {
         if (type == Type.INTEGER || type == Type.BOOLEAN) {
             sb.append("    istore ").append(varIndex).append("\n");
         } else if (type instanceof SimpleType && ((SimpleType)type).getName().equals("real")) {
-            sb.append("    dstore ").append(varIndex).append("\n");  // Changed from fstore to dstore
+            sb.append("    dstore ").append(varIndex).append("\n");
         } else if (type == Type.STRING) {
             sb.append("    astore ").append(varIndex).append("\n");
         }
@@ -434,7 +411,7 @@ public class JasminCodeGenerator {
         if (type == Type.INTEGER || type == Type.BOOLEAN) {
             sb.append("    iload ").append(varIndex).append("\n");
         } else if (type instanceof SimpleType && ((SimpleType)type).getName().equals("real")) {
-            sb.append("    dload ").append(varIndex).append("\n");  // Changed from fload to dload
+            sb.append("    dload ").append(varIndex).append("\n");
         } else if (type == Type.STRING) {
             sb.append("    aload ").append(varIndex).append("\n");
         }
@@ -443,39 +420,28 @@ public class JasminCodeGenerator {
     private void generatePrintStatement(PrintStatement stmt, StringBuilder sb) {
         Expression expr = stmt.getExpression();
         
-        // First generate the PrintStream reference
         sb.append("    getstatic java/lang/System/out Ljava/io/PrintStream;\n");
         
-        // For string concatenation, we need to use StringBuilder
         if (expr instanceof BinaryExpression && ((BinaryExpression) expr).getOperator().equals("+")) {
-            // Create new StringBuilder
             sb.append("    new java/lang/StringBuilder\n");
             sb.append("    dup\n");
             sb.append("    invokespecial java/lang/StringBuilder/<init>()V\n");
             
-            // Generate the concatenation
             generateStringConcatenation((BinaryExpression) expr, sb);
             
-            // Convert StringBuilder to String
             sb.append("    invokevirtual java/lang/StringBuilder/toString()Ljava/lang/String;\n");
-            
-            // Print the string
             sb.append("    invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
         } else if (expr instanceof RecordAccess) {
-            // Handle record access
             RecordAccess access = (RecordAccess) expr;
             String recordName = access.getRecord();
             String fieldName = access.getField();
             
-            // Get the field type from the record type
             Type recordType = globalVariableTypes.get(recordName);
             Type fieldType = ((RecordType)symbolTable.getTypeDefinition(
                 ((SimpleType)recordType).getName())).getFields().get(fieldName);
             
-            // Generate the expression code
             generateExpression(expr, sb);
             
-            // Use the correct descriptor based on the field type
             if (fieldType == Type.INTEGER) {
                 sb.append("    invokevirtual java/io/PrintStream/println(I)V\n");
             } else if (fieldType == Type.STRING) {
@@ -484,7 +450,6 @@ public class JasminCodeGenerator {
                 sb.append("    invokevirtual java/io/PrintStream/println(Z)V\n");
             }
         } else {
-            // Handle non-concatenation expressions
             generateExpression(expr, sb);
             Type exprType = getExpressionType(expr);
             
@@ -572,7 +537,7 @@ public class JasminCodeGenerator {
             }
         } else if (expr instanceof RealLiteral) {
             double value = ((RealLiteral) expr).getValue();
-            sb.append("    ldc2_w ").append(value).append("\n");  // Changed from ldc to ldc2_w for doubles
+            sb.append("    ldc2_w ").append(value).append("\n");
         } else if (expr instanceof BooleanLiteral) {
             sb.append("    iconst_").append(((BooleanLiteral) expr).getValue() ? "1" : "0").append("\n");
         } else if (expr instanceof StringLiteral) {
@@ -585,7 +550,6 @@ public class JasminCodeGenerator {
             if (varIndex != null) {
                 generateLoad(varType, varIndex, sb);
             } else {
-                // Handle global variables
                 varType = globalVariableTypes.get(varName);
                 if (varType == null) {
                     throw new RuntimeException("Undefined variable: " + varName);
@@ -602,9 +566,8 @@ public class JasminCodeGenerator {
             String arrayName = access.getArray();
             Type arrayType = variableTypes.get(arrayName);
 
-            // Load array reference
             if (arrayType == null) {
-                // Global array
+                // global array
                 Type arrayGlobalType = globalVariableTypes.get(arrayName);
                 if (arrayGlobalType == null) {
                     throw new RuntimeException("Undefined global variable: " + arrayName);
@@ -613,17 +576,15 @@ public class JasminCodeGenerator {
                 sb.append("    getstatic Main/").append(arrayName)
                   .append(" [").append(getArrayFieldDescriptor(elementType)).append("\n");
             } else {
-                // Local array
+                // local array
                 Integer arrayIndex = localVariables.get(arrayName);
                 sb.append("    aload ").append(arrayIndex).append("\n");
             }
 
-            // Generate index expression
             generateExpression(access.getIndex(), sb);
             sb.append("    iconst_1\n");
-            sb.append("    isub\n"); // Adjust index for zero-based arrays
+            sb.append("    isub\n"); // adjust for zero-based arrays
 
-            // Load array element
             Type elementType = (arrayType != null)
                     ? ((ArrayType) arrayType).getElementType()
                     : ((ArrayType) globalVariableTypes.get(arrayName)).getElementType();
@@ -634,21 +595,17 @@ public class JasminCodeGenerator {
                 sb.append("    daload\n");
             }
         } else if (expr instanceof RecordAccess) {
-            // Update to use the existing RecordAccess class methods
             RecordAccess access = (RecordAccess) expr;
-            String recordName = access.getRecord(); // Changed from getRecordName()
-            String fieldName = access.getField();   // Changed from getFieldName()
+            String recordName = access.getRecord();
+            String fieldName = access.getField();
             
-            // Load the record reference
             sb.append("    getstatic Main/").append(recordName)
               .append(" L").append(getRecordTypeName(recordName)).append(";\n");
             
-            // Get the field type
             Type recordType = globalVariableTypes.get(recordName);
             Type fieldType = ((RecordType)symbolTable.getTypeDefinition(
                 ((SimpleType)recordType).getName())).getFields().get(fieldName);
             
-            // Get the field value
             sb.append("    getfield ").append(getRecordTypeName(recordName))
               .append("/").append(fieldName)
               .append(" ").append(getTypeDescriptor(fieldType)).append("\n");
@@ -656,7 +613,7 @@ public class JasminCodeGenerator {
             UnaryExpression unary = (UnaryExpression) expr;
             if (unary.getOperator().equals("not")) {
                 generateExpression(unary.getExpression(), sb);
-                // Negate the boolean value
+                // negate boolean
                 String label = getNextLabel();
                 sb.append("    ifeq ").append(label).append("_true\n");
                 sb.append("    iconst_0\n");

@@ -1,0 +1,24 @@
+routine main() is
+    var x: integer is 100;
+    
+    print("Testing dead code elimination:");
+    
+    if (5 > 3) then
+        print("This will execute");
+        x := x + 10;
+    else
+        print("This is dead code - will be removed");
+        x := x - 50;
+    end;
+    
+    if (10 < 5) then
+        print("This is also dead code");
+        x := 0;
+    else
+        print("This will execute");
+        x := x + 20;
+    end;
+    
+    print("Final x: " + x);
+end;
+

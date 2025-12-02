@@ -1,0 +1,13 @@
+routine main() is
+    var used1: integer is 100;
+    var used2: string is "Hello";
+    
+    var unused1: integer is 42;
+    var unused2: real is 3.14;
+    var unused3: boolean is true;
+    var unused4: string is "Never used";
+    
+    print("Used variable 1: " + used1);
+    print("Used variable 2: " + used2);
+end;
+

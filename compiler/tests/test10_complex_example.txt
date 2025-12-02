@@ -1,6 +1,9 @@
 routine main() is
     var i: integer;
     var j: integer;
+    var k: integer;
+
+    k:= 2 + 5;
 
     for i in 1..5 loop
         for j in 1..5 loop

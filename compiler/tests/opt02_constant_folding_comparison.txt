@@ -1,0 +1,15 @@
+routine main() is
+    var check1: boolean is 5 > 3;
+    var check2: boolean is 10 < 8;
+    var check3: boolean is 15 = 15;
+    var check4: boolean is 20 != 20;
+    var check5: boolean is 7 >= 7;
+    
+    print("Comparison constant folding:");
+    print("5 > 3: " + check1);
+    print("10 < 8: " + check2);
+    print("15 = 15: " + check3);
+    print("20 != 20: " + check4);
+    print("7 >= 7: " + check5);
+end;
+

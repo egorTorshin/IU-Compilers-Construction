@@ -2,7 +2,10 @@ package com.compiler;
 
 import com.compiler.semantic.SemanticAnalyzer;
 import com.compiler.semantic.SemanticError;
+import com.compiler.ast.Program;
 import com.compiler.optimizer.Optimizer;
+import com.compiler.visualization.VisualizationGenerator;
+import com.compiler.visualization.GraphvizGenerator;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.Symbol;
 import java.io.FileReader;
@@ -17,6 +20,7 @@ public class Main {
     private static boolean debug = false;
     private static boolean verbose = false;
     private static boolean optimize = false;
+    private static boolean visualize = false;
     
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -53,23 +57,40 @@ public class Main {
             if (args[i].equals("--optimize") || args[i].equals("-O")) {
                 optimize = true;
             }
+            if (args[i].equals("--visualize") || args[i].equals("-V")) {
+                visualize = true;
+            }
         }
         
         compileSingleFile(inputFilePath);
     }
 
     private static void compileSingleFile(String inputFilePath) {
+        VisualizationGenerator vizGen = visualize ? new VisualizationGenerator(debug) : null;
+        
         try {
             File inputFile = new File(inputFilePath);
             if (!inputFile.exists()) {
                 System.err.println("Error: File not found: " + inputFilePath);
                 System.exit(1);
             }
+            
+            if (visualize) {
+                StringBuilder sourceCode = new StringBuilder();
+                try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sourceCode.append(line).append("\n");
+                    }
+                }
+                vizGen.setSourceCode(sourceCode.toString());
+            }
 
             if (debug) {
                 System.err.println("\n" + "=== Lexical Analysis ===");
             }
             
+            long phaseStart = System.currentTimeMillis();
             String fileName = inputFile.getName();
             ComplexSymbolFactory symbolFactory = new ComplexSymbolFactory();
             Lexer lexer = new Lexer(new FileReader(inputFilePath), symbolFactory, fileName);
@@ -81,14 +102,24 @@ public class Main {
                 }
                 lexer = new Lexer(new FileReader(inputFilePath), symbolFactory, fileName);
             }
+            
+            if (visualize) {
+                vizGen.addPhaseTiming("Lexical Analysis", System.currentTimeMillis() - phaseStart);
+            }
 
             if (debug) {
                 System.err.println("\n" + "=== Syntactic Analysis ===");
             }
             
+            phaseStart = System.currentTimeMillis();
             ImperativeLangParser parser = new ImperativeLangParser(lexer, symbolFactory);
             Symbol parseTree = parser.parse();
             Program program = (Program) parseTree.value;
+            
+            if (visualize) {
+                vizGen.addPhaseTiming("Syntactic Analysis", System.currentTimeMillis() - phaseStart);
+                vizGen.setProgram(program);
+            }
 
             if (debug) {
                 System.err.println("AST:");
@@ -96,6 +127,7 @@ public class Main {
                 System.err.println("\n" + "=== Semantic Analysis ===");
             }
             
+            phaseStart = System.currentTimeMillis();
             SemanticAnalyzer analyzer = new SemanticAnalyzer(debug);
             List<SemanticError> errors = analyzer.analyze(program);
 
@@ -107,14 +139,34 @@ public class Main {
                 System.exit(1);
             }
             
+            if (visualize) {
+                vizGen.addPhaseTiming("Semantic Analysis", System.currentTimeMillis() - phaseStart);
+                vizGen.setSymbolTable(analyzer.getSymbolTable());
+            }
+            
             int optimizationCount = 0;
             if (optimize) {
+                // save AST before optimization for visualization
+                if (visualize) {
+                    vizGen.setOriginalAST(program.toString());
+                }
+                
                 if (debug) {
                     System.err.println("\n" + "=== Optimization ===");
                 }
                 
+                phaseStart = System.currentTimeMillis();
                 Optimizer optimizer = new Optimizer(debug);
                 optimizationCount = optimizer.optimize(program);
+                
+                if (visualize) {
+                    vizGen.addPhaseTiming("Optimization", System.currentTimeMillis() - phaseStart);
+                    vizGen.setOptimizationCount(optimizationCount);
+                    vizGen.setOptimizedAST(program.toString());
+                    for (com.compiler.optimizer.OptimizationDetail detail : optimizer.getOptimizationDetails()) {
+                        vizGen.addOptimizationDetailObject(detail);
+                    }
+                }
                 
                 if (debug) {
                     System.err.println("\nOptimized AST:");
@@ -122,18 +174,17 @@ public class Main {
                 }
             }
 
-            // Code Generation
             if (debug) {
                 System.err.println("\n" + "=== Code Generation ===");
             }
             
-            // Create output directory if it doesn't exist
+            phaseStart = System.currentTimeMillis();
+            
             File outputDir = new File("output");
             if (!outputDir.exists()) {
                 outputDir.mkdirs();
             }
 
-            // Generate Jasmin assembly code
             JasminCodeGenerator codeGen = new JasminCodeGenerator(analyzer.getSymbolTable(), debug);
             String jasminCode = codeGen.generate(program);
 
@@ -144,31 +195,56 @@ public class Main {
                 System.err.println("----------------------------\n");
             }
 
-            // Write Main.j assembly to file
             String mainJasminFile = outputDir + "/Main.j";
             try (FileWriter writer = new FileWriter(mainJasminFile)) {
                 writer.write(jasminCode);
             }
 
-            // Compile all .j files in the output directory
+            // compile record files first, then Main.j
             File[] jasminFiles = outputDir.listFiles((dir, name) -> name.endsWith(".j"));
             if (jasminFiles != null) {
-                // First compile record type files
                 for (File jasminFile : jasminFiles) {
                     if (!jasminFile.getName().equals("Main.j")) {
                         compileJasminFile(jasminFile.getPath(), outputDir.getPath());
                     }
                 }
-                
-                // Then compile Main.j
                 compileJasminFile(mainJasminFile, outputDir.getPath());
             }
 
-            // Create executable JAR file from compiled .class files
+            if (visualize) {
+                vizGen.addPhaseTiming("Code Generation", System.currentTimeMillis() - phaseStart);
+            }
+            
             if (debug) {
                 System.err.println("\n" + "=== Creating Executable ===");
             }
             String executableJar = createExecutableJar(outputDir, inputFile.getName());
+            
+            if (visualize) {
+                String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
+                
+                String vizPath = outputDir + "/" + baseName + "_report.html";
+                vizGen.generateHTMLReport(vizPath);
+                
+                String dotPath = outputDir + "/" + baseName + "_ast.dot";
+                GraphvizGenerator graphviz = new GraphvizGenerator();
+                graphviz.generateDOT(program, dotPath);
+                
+                String graphvizHtml = outputDir + "/" + baseName + "_ast_graphviz.html";
+                graphviz.generateInteractiveSVG(program, graphvizHtml);
+                
+                if (debug) {
+                    System.out.println("📊 Visualization files generated:");
+                    System.out.println("  - HTML Report: " + new File(vizPath).getAbsolutePath());
+                    System.out.println("  - AST DOT: " + new File(dotPath).getAbsolutePath());
+                    System.out.println("  - AST Graphviz: " + new File(graphvizHtml).getAbsolutePath());
+                } else {
+                    System.out.println("📊 Visualizations created:");
+                    System.out.println("  ├─ 📄 " + new File(vizPath).getName());
+                    System.out.println("  ├─ 🌳 " + new File(dotPath).getName());
+                    System.out.println("  └─ 🎨 " + new File(graphvizHtml).getName());
+                }
+            }
 
             if (debug) {
                 String optMsg = optimize ? " (" + optimizationCount + " optimizations applied)" : "";
@@ -291,6 +367,7 @@ public class Main {
         System.out.println("Options:");
         System.out.println("  --debug           Show detailed compilation output");
         System.out.println("  --optimize, -O    Enable AST optimizations");
+        System.out.println("  --visualize, -V   Generate HTML visualization report");
         System.out.println("  --test-all        Run all tests in tests/ directory");
         System.out.println("  --verbose, -v     Show error details (with --test-all)");
         System.out.println("  --help, -h        Show this help message");
@@ -313,6 +390,12 @@ public class Main {
         System.out.println("  # With debug and optimization");
         System.out.println("  java -jar target/IL-compiler.jar tests/test01.txt --debug --optimize");
         System.out.println();
+        System.out.println("  # With visualization report");
+        System.out.println("  java -jar target/IL-compiler.jar tests/test01.txt --visualize");
+        System.out.println();
+        System.out.println("  # With all features");
+        System.out.println("  java -jar target/IL-compiler.jar tests/test01.txt --optimize --visualize");
+        System.out.println();
         System.out.println("  # Run all tests");
         System.out.println("  java -jar target/IL-compiler.jar --test-all");
         System.out.println();
@@ -320,22 +403,13 @@ public class Main {
         System.out.println("  java -jar target/IL-compiler.jar --test-all --optimize");
     }
 
-    /**
-     * Creates an executable JAR file from compiled .class files.
-     * This creates a standalone executable that can be run independently.
-     *
-     * @param outputDir Directory containing the compiled .class files
-     * @param sourceFileName Original source file name (for naming the executable)
-     * @return Path to the created JAR file
-     */
+    // creates executable JAR from compiled .class files
     private static String createExecutableJar(File outputDir, String sourceFileName) {
         try {
-            // Get base name without extension
             String baseName = sourceFileName.replaceFirst("[.][^.]+$", "");
             String jarFileName = baseName + ".jar";
             String jarPath = outputDir.getPath() + File.separator + jarFileName;
             
-            // Try using Java API first (more reliable)
             try {
                 Manifest manifest = new Manifest();
                 manifest.getMainAttributes().put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -343,7 +417,6 @@ public class Main {
                 manifest.getMainAttributes().put(new java.util.jar.Attributes.Name("Created-By"), "Imperative Language Compiler");
                 
                 try (JarOutputStream jarOut = new JarOutputStream(new FileOutputStream(jarPath), manifest)) {
-                    // Add all .class files from output directory
                     addClassFilesToJar(outputDir, outputDir, jarOut);
                 }
                 
@@ -352,12 +425,10 @@ public class Main {
                 }
                 return jarPath;
             } catch (Exception apiException) {
-                // Fallback to jar command if Java API fails
                 if (debug) {
                     System.err.println("Java API method failed, trying jar command...");
                 }
                 
-                // Create manifest file
                 String manifestPath = outputDir.getPath() + File.separator + "MANIFEST.MF";
                 try (FileWriter manifestWriter = new FileWriter(manifestPath)) {
                     manifestWriter.write("Manifest-Version: 1.0\n");
@@ -365,7 +436,6 @@ public class Main {
                     manifestWriter.write("Created-By: Imperative Language Compiler\n");
                 }
                 
-                // Build jar command
                 ProcessBuilder pb = new ProcessBuilder(
                     "jar", "cfm", jarPath, manifestPath, "-C", outputDir.getPath(), "."
                 );
@@ -377,7 +447,6 @@ public class Main {
                     if (debug) {
                         System.err.println("Created executable JAR: " + jarFileName);
                     }
-                    // Clean up manifest file
                     new File(manifestPath).delete();
                     return jarPath;
                 } else {
@@ -393,14 +462,7 @@ public class Main {
         }
     }
     
-    /**
-     * Recursively adds .class files to a JAR output stream.
-     *
-     * @param rootDir The root directory (for relative paths)
-     * @param currentDir The current directory being processed
-     * @param jarOut The JAR output stream
-     * @throws IOException if file operations fail
-     */
+    // recursively adds .class files to JAR
     private static void addClassFilesToJar(File rootDir, File currentDir, JarOutputStream jarOut) throws IOException {
         File[] files = currentDir.listFiles();
         if (files == null) return;
@@ -425,24 +487,15 @@ public class Main {
         }
     }
 
-    /**
-     * Compiles a Jasmin assembly file into JVM bytecode.
-     * Uses the Jasmin assembler to convert the .j file into a .class file.
-     *
-     * @param jasminFile Path to the input Jasmin assembly file (.j)
-     * @param outputDir Directory where the compiled .class file should be placed
-     */
+    // compiles .j file to .class using jasmin
     private static void compileJasminFile(String jasminFile, String outputDir) {
         try {
-            // Get the absolute path to jasmin.jar relative to the compiler directory
             File compilerDir = new File(".");
             File jasminJar = new File(compilerDir, "lib/jasmin.jar");
             if (!jasminJar.exists()) {
-                // Try alternative path
                 jasminJar = new File("compiler/lib/jasmin.jar");
             }
             
-            // Use ProcessBuilder to run jasmin.jar
             ProcessBuilder pb = new ProcessBuilder(
                 "java", 
                 "-jar", 
@@ -460,7 +513,6 @@ public class Main {
             } else if (exitCode != 0) {
                 System.err.println("Error compiling " + jasminFile + ". Exit code: " + exitCode);
                 
-                // Print error output if any
                 try (BufferedReader reader = new BufferedReader(
                         new InputStreamReader(process.getErrorStream()))) {
                     String line;

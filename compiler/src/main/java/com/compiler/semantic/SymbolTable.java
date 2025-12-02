@@ -1,8 +1,10 @@
 package com.compiler.semantic;
 
-import com.compiler.Type;
-import com.compiler.SimpleType;
-import com.compiler.RoutineDecl;
+import com.compiler.ast.Parameter;
+import com.compiler.ast.RoutineDecl;
+import com.compiler.ast.SimpleType;
+import com.compiler.ast.Type;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -125,5 +127,117 @@ public class SymbolTable {
         }
         scopes.get(scopes.size() - 1).put(name, type);
         return true;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        
+        // Variables in scopes
+        if (!scopes.isEmpty()) {
+            sb.append("VARIABLES:\n");
+            for (int i = 0; i < scopes.size(); i++) {
+                Map<String, Type> scope = scopes.get(i);
+                if (!scope.isEmpty()) {
+                    sb.append("  Scope ").append(i).append(":\n");
+                    for (Map.Entry<String, Type> entry : scope.entrySet()) {
+                        sb.append("    ").append(entry.getKey())
+                          .append(" : ").append(entry.getValue()).append("\n");
+                    }
+                }
+            }
+        }
+        
+        // Routines
+        if (!routines.isEmpty()) {
+            sb.append("\nROUTINES:\n");
+            for (Map.Entry<String, RoutineDecl> entry : routines.entrySet()) {
+                sb.append("  ").append(entry.getKey()).append("()\n");
+            }
+        }
+        
+        // User-defined types
+        if (!types.isEmpty()) {
+            sb.append("\nUSER-DEFINED TYPES:\n");
+            for (Map.Entry<String, Type> entry : types.entrySet()) {
+                sb.append("  ").append(entry.getKey())
+                  .append(" = ").append(entry.getValue()).append("\n");
+            }
+        }
+        
+        if (sb.length() == 0) {
+            return "No symbols defined";
+        }
+        
+        return sb.toString();
+    }
+    
+    // For HTML visualization - returns structured data
+    public Map<String, Object> getVisualizationData() {
+        Map<String, Object> data = new HashMap<>();
+        
+        // Collect all variables from all scopes
+        List<Map<String, String>> variables = new ArrayList<>();
+        for (int i = 0; i < scopes.size(); i++) {
+            Map<String, Type> scope = scopes.get(i);
+            String scopeName = (i == 0) ? "Global" : "Scope " + i;
+            for (Map.Entry<String, Type> entry : scope.entrySet()) {
+                Map<String, String> var = new HashMap<>();
+                var.put("name", entry.getKey());
+                var.put("type", entry.getValue().toString());
+                var.put("scope", scopeName);
+                variables.add(var);
+            }
+        }
+        data.put("variables", variables);
+        
+        // Collect routines with detailed info
+        List<Map<String, String>> routineList = new ArrayList<>();
+        for (Map.Entry<String, RoutineDecl> entry : routines.entrySet()) {
+            Map<String, String> routine = new HashMap<>();
+            RoutineDecl decl = entry.getValue();
+            routine.put("name", entry.getKey());
+            
+            // Build parameter list
+            StringBuilder params = new StringBuilder();
+            if (decl.getParameters() != null && !decl.getParameters().isEmpty()) {
+                boolean first = true;
+                for (Parameter param : decl.getParameters()) {
+                    if (!first) params.append(", ");
+                    params.append(param.getName()).append(": ").append(param.getType());
+                    first = false;
+                }
+            }
+            routine.put("parameters", params.toString());
+            
+            // Return type
+            Type returnType = decl.getReturnType();
+            routine.put("returnType", returnType != null ? returnType.toString() : "void");
+            
+            routineList.add(routine);
+        }
+        data.put("routines", routineList);
+        
+        // Collect user types
+        Map<String, String> userTypes = new HashMap<>();
+        for (Map.Entry<String, Type> entry : types.entrySet()) {
+            userTypes.put(entry.getKey(), entry.getValue().toString());
+        }
+        data.put("types", userTypes);
+        
+        return data;
+    }
+    
+    // Get public accessors for better visualization
+    public List<Map<String, Type>> getScopes() {
+        return scopes;
+    }
+    
+    public Map<String, RoutineDecl> getRoutines() {
+        return routines;
+    }
+    
+    public Map<String, Type> getTypes() {
+        return types;
     }
 }

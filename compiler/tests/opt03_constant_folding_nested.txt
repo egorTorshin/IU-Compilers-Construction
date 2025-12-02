@@ -1,0 +1,15 @@
+routine main() is
+    var complex1: integer is ((2 + 3) * (4 + 6)) / 2;
+    var complex2: integer is 100 - (20 + 30) + 10;
+    var complex3: integer is (8 * 4) % (5 + 2);
+    
+    var x: integer is 10;
+    var partial: integer is (5 + 5) * x;
+    
+    print("Nested constant folding:");
+    print("complex1 = " + complex1);
+    print("complex2 = " + complex2);
+    print("complex3 = " + complex3);
+    print("partial = " + partial);
+end;
+

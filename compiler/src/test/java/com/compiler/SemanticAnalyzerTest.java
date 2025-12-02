@@ -1,5 +1,6 @@
 package com.compiler;
 
+import com.compiler.ast.Program;
 import com.compiler.semantic.SemanticAnalyzer;
 import com.compiler.semantic.SemanticError;
 import java_cup.runtime.ComplexSymbolFactory;

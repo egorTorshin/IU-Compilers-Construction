@@ -58,6 +58,11 @@ java -jar target/IL-compiler.jar tests/test01_simple_variables.txt --debug
 # with optimizations
 java -jar target/IL-compiler.jar tests/test01_simple_variables.txt --optimize
 
+# with vusialisation
+java -jar target/IL-compiler.jar tests/test01_simple_variables.txt --visualize
+start /output/test01_simple_variables_report.html
+
+
 # all tests
 java -jar target/IL-compiler.jar --test-all
 ```

@@ -1,15 +1,41 @@
 package com.compiler.optimizer;
 
 import com.compiler.*;
+import com.compiler.ast.ArrayAccess;
+import com.compiler.ast.ArrayDecl;
+import com.compiler.ast.Assignment;
+import com.compiler.ast.BinaryExpression;
+import com.compiler.ast.BooleanLiteral;
+import com.compiler.ast.Expression;
+import com.compiler.ast.ForLoop;
+import com.compiler.ast.IfStatement;
+import com.compiler.ast.IntegerLiteral;
+import com.compiler.ast.PrintStatement;
+import com.compiler.ast.Program;
+import com.compiler.ast.RealLiteral;
+import com.compiler.ast.RecordAccess;
+import com.compiler.ast.ReturnStatement;
+import com.compiler.ast.RoutineCall;
+import com.compiler.ast.RoutineCallStatement;
+import com.compiler.ast.RoutineDecl;
+import com.compiler.ast.Statement;
+import com.compiler.ast.TypeCast;
+import com.compiler.ast.UnaryExpression;
+import com.compiler.ast.VarDecl;
+import com.compiler.ast.VariableReference;
+import com.compiler.ast.WhileStatement;
+
 import java.util.*;
 
 public class Optimizer {
     private boolean debug;
     private int optimizationCount;
+    private List<OptimizationDetail> optimizationDetails;
     
     public Optimizer(boolean debug) {
         this.debug = debug;
         this.optimizationCount = 0;
+        this.optimizationDetails = new ArrayList<>();
     }
     
     public Optimizer() {
@@ -208,19 +234,64 @@ public class Optimizer {
                 int leftVal = ((IntegerLiteral) left).getValue();
                 int rightVal = ((IntegerLiteral) right).getValue();
                 String op = bin.getOperator();
+                String before = leftVal + " " + op + " " + rightVal;
                 
-                if (op.equals("+")) return new IntegerLiteral(leftVal + rightVal);
-                if (op.equals("-")) return new IntegerLiteral(leftVal - rightVal);
-                if (op.equals("*")) return new IntegerLiteral(leftVal * rightVal);
-                if (op.equals("/") && rightVal != 0) return new IntegerLiteral(leftVal / rightVal);
-                if (op.equals("%") && rightVal != 0) return new IntegerLiteral(leftVal % rightVal);
+                if (op.equals("+")) {
+                    int result = leftVal + rightVal;
+                    addOptimizationDetail("Constant Folding", "Arithmetic simplification", before, String.valueOf(result));
+                    return new IntegerLiteral(result);
+                }
+                if (op.equals("-")) {
+                    int result = leftVal - rightVal;
+                    addOptimizationDetail("Constant Folding", "Arithmetic simplification", before, String.valueOf(result));
+                    return new IntegerLiteral(result);
+                }
+                if (op.equals("*")) {
+                    int result = leftVal * rightVal;
+                    addOptimizationDetail("Constant Folding", "Arithmetic simplification", before, String.valueOf(result));
+                    return new IntegerLiteral(result);
+                }
+                if (op.equals("/") && rightVal != 0) {
+                    int result = leftVal / rightVal;
+                    addOptimizationDetail("Constant Folding", "Arithmetic simplification", before, String.valueOf(result));
+                    return new IntegerLiteral(result);
+                }
+                if (op.equals("%") && rightVal != 0) {
+                    int result = leftVal % rightVal;
+                    addOptimizationDetail("Constant Folding", "Arithmetic simplification", before, String.valueOf(result));
+                    return new IntegerLiteral(result);
+                }
                 
-                if (op.equals(">")) return new BooleanLiteral(leftVal > rightVal);
-                if (op.equals("<")) return new BooleanLiteral(leftVal < rightVal);
-                if (op.equals(">=")) return new BooleanLiteral(leftVal >= rightVal);
-                if (op.equals("<=")) return new BooleanLiteral(leftVal <= rightVal);
-                if (op.equals("=")) return new BooleanLiteral(leftVal == rightVal);
-                if (op.equals("!=")) return new BooleanLiteral(leftVal != rightVal);
+                if (op.equals(">")) {
+                    boolean result = leftVal > rightVal;
+                    addOptimizationDetail("Constant Folding", "Comparison simplification", before, String.valueOf(result));
+                    return new BooleanLiteral(result);
+                }
+                if (op.equals("<")) {
+                    boolean result = leftVal < rightVal;
+                    addOptimizationDetail("Constant Folding", "Comparison simplification", before, String.valueOf(result));
+                    return new BooleanLiteral(result);
+                }
+                if (op.equals(">=")) {
+                    boolean result = leftVal >= rightVal;
+                    addOptimizationDetail("Constant Folding", "Comparison simplification", before, String.valueOf(result));
+                    return new BooleanLiteral(result);
+                }
+                if (op.equals("<=")) {
+                    boolean result = leftVal <= rightVal;
+                    addOptimizationDetail("Constant Folding", "Comparison simplification", before, String.valueOf(result));
+                    return new BooleanLiteral(result);
+                }
+                if (op.equals("=")) {
+                    boolean result = leftVal == rightVal;
+                    addOptimizationDetail("Constant Folding", "Comparison simplification", before, String.valueOf(result));
+                    return new BooleanLiteral(result);
+                }
+                if (op.equals("!=")) {
+                    boolean result = leftVal != rightVal;
+                    addOptimizationDetail("Constant Folding", "Comparison simplification", before, String.valueOf(result));
+                    return new BooleanLiteral(result);
+                }
             }
             
             if (left instanceof RealLiteral && right instanceof RealLiteral) {
@@ -372,10 +443,11 @@ public class Optimizer {
             IfStatement ifStmt = (IfStatement) stmt;
             Expression condition = ifStmt.getCondition();
             
-            // if (true) - keep only then branch
             if (condition instanceof BooleanLiteral && ((BooleanLiteral) condition).getValue()) {
                 optimizationCount++;
                 debugLog("eliminated if(true): keeping then branch, removing else branch");
+                addOptimizationDetail("Dead Code Elimination", "Removed else branch of if(true)", 
+                    "if (true) { ... } else { ... }", "if (true) { ... }");
                 
                 List<Statement> optimizedThen = new ArrayList<>();
                 for (Statement s : ifStmt.getThenStatements()) {
@@ -385,10 +457,11 @@ public class Optimizer {
                 return new IfStatement(condition, optimizedThen, null);
             }
             
-            // if (false) - keep only else branch
             if (condition instanceof BooleanLiteral && !((BooleanLiteral) condition).getValue()) {
                 optimizationCount++;
                 debugLog("eliminated if(false): keeping else branch, removing then branch");
+                addOptimizationDetail("Dead Code Elimination", "Removed then branch of if(false)", 
+                    "if (false) { ... } else { ... }", "else { ... }");
                 
                 if (ifStmt.getElseStatements() != null) {
                     List<Statement> optimizedElse = new ArrayList<>();
@@ -421,10 +494,11 @@ public class Optimizer {
             WhileStatement whileStmt = (WhileStatement) stmt;
             Expression condition = whileStmt.getCondition();
             
-            // while (false) - entire loop is dead
             if (condition instanceof BooleanLiteral && !((BooleanLiteral) condition).getValue()) {
                 optimizationCount++;
                 debugLog("eliminated while(false): removing entire loop");
+                addOptimizationDetail("Dead Code Elimination", "Removed unreachable while(false) loop", 
+                    "while (false) { ... }", "// removed");
                 return new WhileStatement(condition, new ArrayList<>());
             }
             
@@ -467,6 +541,8 @@ public class Optimizer {
                 if (!usedVars.contains(decl.getName())) {
                     optimizationCount++;
                     debugLog("removed unused variable: " + decl.getName());
+                    addOptimizationDetail("Unused Variable Elimination", "Removed unused variable", 
+                        "var " + decl.getName() + " : " + decl.getType(), "// removed");
                     continue;
                 }
             }
@@ -476,6 +552,8 @@ public class Optimizer {
                 if (!usedVars.contains(decl.getName())) {
                     optimizationCount++;
                     debugLog("removed unused array: " + decl.getName());
+                    addOptimizationDetail("Unused Variable Elimination", "Removed unused array", 
+                        "var " + decl.getName() + " : array[...]", "// removed");
                     continue;
                 }
             }
@@ -655,6 +733,14 @@ public class Optimizer {
     
     public int getOptimizationCount() {
         return optimizationCount;
+    }
+    
+    public List<OptimizationDetail> getOptimizationDetails() {
+        return optimizationDetails;
+    }
+    
+    private void addOptimizationDetail(String type, String description, String before, String after) {
+        optimizationDetails.add(new OptimizationDetail(type, description, before, after));
     }
 }
 

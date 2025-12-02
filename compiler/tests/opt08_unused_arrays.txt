@@ -1,0 +1,17 @@
+routine main() is
+    var usedArray: array[5] integer;
+    
+    var unusedArray1: array[10] integer;
+    var unusedArray2: array[20] real;
+    var unusedArray3: array[3] boolean;
+    
+    usedArray[0] := 10;
+    usedArray[1] := 20;
+    usedArray[2] := 30;
+    
+    print("Array element 0: " + usedArray[0]);
+    print("Array element 1: " + usedArray[1]);
+    print("Array element 2: " + usedArray[2]);
+    
+end;
+
