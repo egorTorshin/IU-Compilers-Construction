@@ -25,6 +25,9 @@ compiler/
 │   ├── Main.java                  # entry point
 │   ├── Lexer.java                 # lexical analysis (JFlex)
 │   ├── ImperativeLangParser.java  # syntactic analysis (CUP)
+│   ├── sym.java                   # CUP symbols (generated)
+│   ├── ast/                       # AST nodes (language model)
+│   │   └── [AST nodes]
 │   ├── semantic/                  # semantic analysis
 │   │   ├── SemanticAnalyzer.java
 │   │   ├── SymbolTable.java
@@ -32,7 +35,6 @@ compiler/
 │   ├── JasminCodeGenerator.java   # code generation (Jasmin)
 │   ├── optimizer/                 # AST optimizations
 │   │   └── Optimizer.java
-│   └── [AST nodes...]
 ├── tests/                         # test files (.txt)
 └── lib/                           # dependencies (jasmin.jar, java-cup)
 ```
