@@ -16,8 +16,6 @@ routine main() is
     print("Result 1: " + result1);
     print("Result 2: " + result2);
     
-    return;
     print("Program ended");
     var unused: integer is 42;
 end;
-

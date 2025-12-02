@@ -82,7 +82,10 @@ java -jar output/program.jar
 
 ```bash
 # run the program with user input
+# for Windows:
 Get-Content tests/test22_number_analyzer_input.txt | java -jar output/test22_number_analyzer.jar
+# for MacOS:
+java -jar output/test22_number_analyzer.jar < tests/test22_number_analyzer_input.txt
 ```
 
 ## Features
